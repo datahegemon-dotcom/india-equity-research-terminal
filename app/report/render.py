@@ -19,7 +19,6 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from app.report import charts as chart_maker
 
 from app.core.scoring import (
-    AUDIT_QUESTIONS,
     CATEGORY_LABELS,
     CATEGORY_WEIGHTS,
     Action,
@@ -185,7 +184,6 @@ def _context_from_payload(payload: dict[str, Any]) -> DecisionContext:
         portfolio_concentration_breach=bool(raw.get("portfolio_concentration_breach")),
         expectation_gap=ExpectationGap(raw.get("expectation_gap", ExpectationGap.UNASSESSED.value)),
         technical_score=raw.get("technical_score"),
-        audit={k: bool(v) for k, v in (raw.get("audit") or {}).items()},
     )
 
 
@@ -243,7 +241,6 @@ def build_view(record: dict[str, Any]) -> dict[str, Any]:
         "scenarios": scenarios,
         "expected_value": ev,
         "narrative": narrative,
-        "audit_questions": AUDIT_QUESTIONS,
         "attribution": ATTRIBUTION,
         "disclaimer": DISCLAIMER,
         "category_labels": CATEGORY_LABELS,

@@ -24,7 +24,6 @@ The program owns everything deterministic:
 - Margin-of-safety classification
 - Expected value when scenario probabilities are supplied
 - The final action matrix
-- The score audit gate
 - Report rendering, including the mandatory section 32 attribution and disclaimer
 
 The analyst owns the seven raw 1–10 judgement scores. The program proposes a draft for
@@ -158,10 +157,13 @@ BUY normally requires 85 or above; ACCUMULATE 75; HOLD 65. A BUY below 85 is per
 only with a written asymmetry justification, which the report prints. REDUCE, EXIT and
 WATCHLIST follow section 19 of framework 14.
 
-### 6.6 Audit gate
+### 6.6 Publication gate
 
-The ten questions of section 21 must all be answered before publish is allowed. The
-answers are stored with the report.
+*Changed after the build.* The spec originally required all ten section 21 audit
+questions to be answered before publishing. At the analyst's direction the audit was
+removed entirely, so publication is now blocked only where the engine cannot stand
+behind the page: an unclassified margin of safety, or an extreme valuation flagged
+without the rule C multiple-compression note.
 
 ## 7. Technical score
 

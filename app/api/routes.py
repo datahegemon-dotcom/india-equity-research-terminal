@@ -13,7 +13,7 @@ from fastapi.responses import HTMLResponse
 
 from app import db
 from app.core import pipeline
-from app.core.scoring import AUDIT_QUESTIONS, CATEGORY_LABELS, CATEGORY_WEIGHTS, classify_margin_of_safety
+from app.core.scoring import CATEGORY_LABELS, CATEGORY_WEIGHTS, classify_margin_of_safety
 from app.providers import yahoo
 from app.report import publish as publisher
 from app.report import render
@@ -50,7 +50,6 @@ def meta() -> dict[str, Any]:
     return {
         "weights": CATEGORY_WEIGHTS,
         "labels": CATEGORY_LABELS,
-        "audit_questions": AUDIT_QUESTIONS,
         "actions": ["BUY", "ACCUMULATE", "HOLD", "WATCHLIST", "REDUCE", "EXIT", "AVOID"],
         "margin_of_safety": ["HIGH", "MODERATE", "LOW", "NEGATIVE", "UNKNOWN"],
         "expectation_gaps": [
@@ -124,7 +123,6 @@ def _initial_payload(analysis: pipeline.Analysis) -> dict[str, Any]:
             "portfolio_concentration_breach": False,
             "expectation_gap": "Not assessed",
             "technical_score": analysis.technical.score,
-            "audit": {},
         },
         "narrative": {
             "why": [],

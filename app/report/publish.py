@@ -1,8 +1,10 @@
 """Publishing.
 
-Turns a finished report into a static page under `site/`, which GitHub Pages
-serves. Publishing is always an explicit action, and only a report that passes
-the score audit can be published.
+Turns a report into a static page under `site/`, which GitHub Pages serves.
+Publishing is always an explicit action. A report is blocked only when the
+engine itself cannot stand behind the page: no base-case value to measure a
+margin of safety against, or an extreme valuation flagged without the written
+multiple-compression note that framework 14 rule C requires.
 
 Nothing else in the local database is written to `site/`. Drafts stay private.
 """
@@ -20,7 +22,7 @@ SITE = Path(__file__).resolve().parent.parent.parent / "site"
 
 
 class NotPublishable(Exception):
-    """Raised when the score audit or an override rule blocks publication."""
+    """Raised when an override rule blocks publication."""
 
     def __init__(self, blockers: list[str]) -> None:
         super().__init__("; ".join(blockers))

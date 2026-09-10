@@ -29,8 +29,10 @@ is not reachable from your network and needs no login.
 3. It proposes a score out of ten for each of the seven categories and shows the figures
    behind each proposal. Moat and catalysts are left to you, because financial statements
    cannot honestly supply them.
-4. You set the final scores, fill in the thesis, and answer the ten audit questions.
+4. You set the final scores and fill in the thesis.
 5. Press publish. The report becomes a page under `site/`. Commit and push to put it online.
+
+Preview shows the finished page at any point, published or not.
 
 ## The scoring engine
 
@@ -50,9 +52,12 @@ Risk is scored in reverse, where ten is low risk. Technical analysis is delibera
 outside the hundred points and reported separately.
 
 The total does not decide on its own. Three valuation overrides, a thesis-break rule, a
-margin-of-safety gate and a portfolio-concentration rule can all overrule it, and a report
-cannot be published until all ten audit questions are answered. Those rules live in
-`app/core/scoring.py`, which is pure logic and covered by tests.
+margin-of-safety gate and a portfolio-concentration rule can all overrule it. Those rules
+live in `app/core/scoring.py`, which is pure logic and covered by tests.
+
+Publication is blocked only when the engine cannot stand behind the page: no base-case
+value to measure a margin of safety against, or an extreme valuation flagged without the
+written multiple-compression note rule C requires.
 
 ```
 .venv/Scripts/python.exe -m pytest tests -q

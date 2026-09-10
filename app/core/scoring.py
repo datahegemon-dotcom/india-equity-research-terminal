@@ -41,20 +41,6 @@ CATEGORY_LABELS: dict[str, str] = {
     "risk": "Risk",
 }
 
-# Section 21. Every question must be answered yes before a report may be published.
-AUDIT_QUESTIONS: dict[str, str] = {
-    "evidence_for_every_score": "Did every score have evidence?",
-    "valuation_analysed_independently": "Did valuation receive independent analysis?",
-    "compared_expectations_with_fundamentals": "Did I compare expectations with actual fundamentals?",
-    "distinguished_cyclical_from_structural": "Did I distinguish cyclical from structural growth?",
-    "used_sector_specific_metrics": "Did I use sector-specific metrics?",
-    "accounted_for_downside": "Did I account for downside?",
-    "challenged_the_bullish_thesis": "Did I challenge the bullish thesis?",
-    "identified_disproving_evidence": "Did I identify what would prove the thesis wrong?",
-    "avoided_double_counting": "Did I avoid double-counting the same factor?",
-    "portfolio_concentration_considered": "Did portfolio concentration affect the recommendation appropriately?",
-}
-
 
 class Band(str, Enum):
     """Section 10. Starting classifications that overrides may change."""
@@ -207,7 +193,6 @@ class DecisionContext:
     portfolio_concentration_breach: bool = False
     expectation_gap: ExpectationGap = ExpectationGap.UNASSESSED
     technical_score: float | None = None
-    audit: dict[str, bool] = field(default_factory=dict)
 
     def validate(self) -> None:
         if self.thesis_break and not self.thesis_break_reasons:
@@ -237,23 +222,6 @@ class Decision:
 def _cap(current: Action, ceiling: Action) -> Action:
     """Return whichever of the two sits lower on the conviction ladder."""
     return max(current, ceiling, key=CONVICTION_LADDER.index)
-
-
-def _audit_blockers(audit: Mapping[str, bool]) -> list[str]:
-    unanswered = [q for q in AUDIT_QUESTIONS if q not in audit]
-    answered_no = [q for q, ok in audit.items() if q in AUDIT_QUESTIONS and not ok]
-    blockers = []
-    if unanswered:
-        blockers.append(
-            "Score audit incomplete: "
-            + "; ".join(AUDIT_QUESTIONS[q] for q in unanswered)
-        )
-    if answered_no:
-        blockers.append(
-            "Score audit answered no: "
-            + "; ".join(AUDIT_QUESTIONS[q] for q in answered_no)
-        )
-    return blockers
 
 
 def decide(raw: RawScores, ctx: DecisionContext) -> Decision:
@@ -334,8 +302,6 @@ def decide(raw: RawScores, ctx: DecisionContext) -> Decision:
         overrides.append(OverrideRule.THESIS_BREAK)
         labels.append("Thesis break: " + "; ".join(ctx.thesis_break_reasons))
         action = Action.EXIT if ctx.thesis_break_severe else Action.REDUCE
-
-    blockers.extend(_audit_blockers(ctx.audit))
 
     return Decision(
         raw=raw.as_dict(),

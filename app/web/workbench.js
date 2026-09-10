@@ -116,7 +116,6 @@ function renderAll() {
   renderRules();
   renderValuation();
   renderNarrative();
-  renderAudit();
   renderData();
 }
 
@@ -434,24 +433,6 @@ function renderNarrative() {
   });
   $('narrative').querySelectorAll('[data-nar]').forEach((el) => {
     el.addEventListener('input', () => { payload().narrative[el.dataset.nar] = el.value; queueSave(); });
-  });
-}
-
-function renderAudit() {
-  const audit = payload().context.audit || {};
-  const questions = state.meta.audit_questions;
-  $('audit').innerHTML = Object.keys(questions).map((key) => `
-    <div class="field--inline">
-      <input type="checkbox" id="audit-${key}" data-audit="${key}" ${audit[key] ? 'checked' : ''}>
-      <label for="audit-${key}">${escapeHtml(questions[key])}</label>
-    </div>`).join('');
-
-  $('audit').querySelectorAll('[data-audit]').forEach((el) => {
-    el.addEventListener('change', () => {
-      payload().context.audit = payload().context.audit || {};
-      payload().context.audit[el.dataset.audit] = el.checked;
-      queueSave();
-    });
   });
 }
 

@@ -5,7 +5,6 @@ Each test names the section of framework 14 it enforces.
 import pytest
 
 from app.core.scoring import (
-    AUDIT_QUESTIONS,
     CATEGORY_WEIGHTS,
     Action,
     Band,
@@ -27,11 +26,6 @@ def scores(**kw):
 
 def perfect():
     return RawScores(**{k: 10 for k in CATEGORY_WEIGHTS})
-
-
-def audited(**kw):
-    kw.setdefault("audit", {q: True for q in AUDIT_QUESTIONS})
-    return DecisionContext(**kw)
 
 
 # --- Section 1: master 100-point score ---------------------------------------
@@ -124,7 +118,7 @@ def test_rule_b_allows_watchlist_only_with_turnaround_catalyst():
 # --- Section 11 Rule C: extreme valuation -------------------------------------
 
 def test_rule_c_requires_a_multiple_compression_note_before_publishing():
-    d = decide(scores(), audited(valuation_extreme=True, margin_of_safety=MarginOfSafety.HIGH))
+    d = decide(scores(), DecisionContext(valuation_extreme=True, margin_of_safety=MarginOfSafety.HIGH))
     assert OverrideRule.C_EXTREME_VALUATION in d.overrides
     assert not d.publishable
     assert any("multiple-compression" in b for b in d.publish_blockers)
@@ -133,7 +127,7 @@ def test_rule_c_requires_a_multiple_compression_note_before_publishing():
 def test_rule_c_satisfied_when_note_supplied():
     d = decide(
         scores(),
-        audited(
+        DecisionContext(
             valuation_extreme=True,
             margin_of_safety=MarginOfSafety.HIGH,
             multiple_compression_note="Trades at 3x its own five-year median EV/EBITDA.",
@@ -267,26 +261,6 @@ def test_expected_value_rejects_probabilities_that_do_not_sum_to_one():
 
 def test_expected_value_is_none_when_probabilities_are_absent():
     assert expected_value({"bear": (80.0, None), "base": (100.0, None), "bull": (140.0, None)}) is None
-
-
-# --- Section 21: score audit gate --------------------------------------------
-
-def test_publish_blocked_until_every_audit_question_is_answered():
-    d = decide(scores(), DecisionContext(margin_of_safety=MarginOfSafety.HIGH, audit={"evidence_for_every_score": True}))
-    assert not d.publishable
-    assert any("audit" in b.lower() for b in d.publish_blockers)
-
-
-def test_publish_blocked_when_an_audit_question_is_answered_no():
-    ctx = audited(margin_of_safety=MarginOfSafety.HIGH)
-    ctx.audit["challenged_the_bullish_thesis"] = False
-    d = decide(scores(), ctx)
-    assert not d.publishable
-
-
-def test_publish_allowed_when_audit_complete_and_no_blockers():
-    d = decide(scores(), audited(margin_of_safety=MarginOfSafety.HIGH))
-    assert d.publishable, d.publish_blockers
 
 
 # --- Section 2: technicals stay outside the hundred --------------------------
