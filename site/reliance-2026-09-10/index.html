@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reliance Industries Limited — India Equity Research Terminal</title>
+<meta name="description" content="Framework-driven equity analysis of Reliance Industries Limited, published as an educational demonstration of the V1.2 scoring engine.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<style>/* India Equity Research Terminal — design system
+ *
+ * Two surfaces share one spine. `.ink` is the private workbench: an instrument
+ * you sit in front of for hours. `.paper` is the published report: a document
+ * people read and print. Same type, same accent, same weight bar.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ink:        #101828;
+  --ink-2:      #172034;
+  --ink-3:      #1e2942;
+  --rule:       #2c3a5c;
+  --rule-soft:  #223051;
+  --on-ink-hi:  #f2f5fa;
+  --on-ink:     #c3cbda;
+  --on-ink-dim: #8592ac;
+
+  --paper:      #eef0f3;
+  --paper-2:    #e4e8ee;
+  --paper-rule: #c8cfda;
+  --on-paper-hi:#111a2c;
+  --on-paper:   #2c3852;
+  --on-paper-dim:#5c6883;
+
+  --marigold:   #e8a33d;
+  --marigold-2: #c9862a;
+  --verdigris:  #1f9169;
+  --brick:      #c14a30;
+
+  --sans: &#34;IBM Plex Sans&#34;, ui-sans-serif, system-ui, &#34;Segoe UI&#34;, sans-serif;
+  --mono: &#34;IBM Plex Mono&#34;, ui-monospace, &#34;Cascadia Mono&#34;, Consolas, monospace;
+  --serif: &#34;Spectral&#34;, Georgia, &#34;Times New Roman&#34;, serif;
+
+  --step-0: 1.0625rem;
+  --step-1: 1.3125rem;
+  --step-2: 1.75rem;
+  --step-3: 2.5rem;
+  --step-4: 3.5rem;
+  --micro: 0.875rem;
+
+  --gutter: clamp(1rem, 4vw, 3.5rem);
+  --measure: 68ch;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  font-feature-settings: &#34;tnum&#34; 1;
+}
+
+body.ink   { background: var(--ink);   color: var(--on-ink); }
+body.paper { background: var(--paper); color: var(--on-paper); }
+
+.ink   { --bg: var(--ink);   --bg-2: var(--ink-2);  --line: var(--rule);
+         --fg-hi: var(--on-ink-hi);  --fg: var(--on-ink);  --fg-dim: var(--on-ink-dim); }
+.paper { --bg: var(--paper); --bg-2: var(--paper-2); --line: var(--paper-rule);
+         --fg-hi: var(--on-paper-hi); --fg: var(--on-paper); --fg-dim: var(--on-paper-dim); }
+
+h1, h2, h3, h4 { color: var(--fg-hi); font-weight: 600; line-height: 1.15; margin: 0; }
+
+a { color: inherit; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--marigold);
+  outline-offset: 2px;
+}
+
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.dim { color: var(--fg-dim); }
+.small { font-size: var(--micro); }
+
+/* ------------------------------------------------------------------ layout */
+
+.shell { max-width: 1180px; margin: 0 auto; padding-inline: var(--gutter); }
+.shell--narrow { max-width: 860px; }
+
+.masthead {
+  border-bottom: 1px solid var(--line);
+  padding-block: 0.85rem;
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.masthead__name {
+  font-family: var(--serif);
+  font-size: var(--step-1);
+  letter-spacing: -0.01em;
+  color: var(--fg-hi);
+}
+.masthead__note { font-size: var(--micro); color: var(--fg-dim); }
+
+section { padding-block: clamp(1.75rem, 4vw, 3rem); border-bottom: 1px solid var(--line); }
+section:last-of-type { border-bottom: 0; }
+
+.section-head { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.section-head h2 { font-family: var(--serif); font-size: var(--step-2); letter-spacing: -0.015em; }
+.section-head p { margin: 0; color: var(--fg-dim); font-size: 0.9375rem; max-width: 48ch; }
+
+.prose { max-width: var(--measure); }
+.prose p { margin: 0 0 0.9em; }
+.paper .prose { font-family: var(--serif); font-size: 1.1875rem; line-height: 1.7; }
+
+.grid { display: grid; gap: clamp(1rem, 2.5vw, 2rem); }
+.grid--2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.grid--3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* ------------------------------------------------------- identity and price */
+
+.identity { display: flex; justify-content: space-between; gap: 2rem; flex-wrap: wrap; align-items: flex-end; }
+.identity h1 { font-family: var(--serif); font-size: var(--step-3); letter-spacing: -0.02em; }
+.identity__price { text-align: right; }
+.identity__price .value { font-family: var(--mono); font-size: var(--step-2); color: var(--fg-hi); }
+
+.factline {
+  display: flex; flex-wrap: wrap; gap: 0 1.75rem;
+  margin-top: 0.9rem; font-size: var(--micro); color: var(--fg-dim);
+}
+.factline &gt; span { display: inline-flex; gap: 0.4rem; }
+.factline b { font-weight: 500; color: var(--fg); font-family: var(--mono); }
+
+/* --------------------------------------------------------- the weight bar */
+/* Column width is the category weight, fill height is the raw score, so the
+ * filled area equals the score out of one hundred. */
+
+.weightbar {
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  padding: clamp(1rem, 3vw, 1.75rem);
+  border-radius: 2px;
+}
+.weightbar__top { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.weightbar__score { font-family: var(--mono); font-size: var(--step-4); line-height: 1; color: var(--fg-hi); letter-spacing: -0.03em; }
+.weightbar__score small { font-size: var(--step-1); color: var(--fg-dim); letter-spacing: 0; }
+.weightbar__band { font-size: var(--step-1); font-weight: 600; }
+
+.columns { display: flex; gap: 3px; height: 168px; align-items: flex-end; }
+.column { position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+          background: color-mix(in srgb, var(--line) 45%, transparent); border-radius: 1px; overflow: hidden; }
+.column__fill { background: var(--marigold); transition: height 900ms cubic-bezier(.2,.7,.3,1); }
+.column__fill--strong { background: var(--verdigris); }
+.column__fill--weak   { background: var(--brick); }
+
+.column__caption { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--fg-dim); line-height: 1.25; }
+.column__caption b { display: block; color: var(--fg); font-family: var(--mono); font-weight: 500; }
+.captions { display: flex; gap: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .column__fill { transition: none; }
+}
+
+/* ----------------------------------------------------------------- verdict */
+
+.verdict { display: inline-flex; align-items: baseline; gap: 0.6rem; font-weight: 600; }
+.verdict__word { font-family: var(--serif); font-size: var(--step-3); letter-spacing: -0.02em; }
+.tone-positive { color: var(--verdigris); }
+.tone-neutral  { color: var(--marigold); }
+.tone-negative { color: var(--brick); }
+
+/* ------------------------------------------------------------------ tables */
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+caption { text-align: left; color: var(--fg-dim); font-size: var(--micro); padding-bottom: 0.5rem; }
+th, td { padding: 0.55rem 0.7rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { color: var(--fg-dim); font-weight: 500; border-bottom-width: 1px; }
+tbody td { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); }
+tbody td:first-child { font-family: var(--sans); color: var(--fg-hi); }
+tbody tr:hover td { background: color-mix(in srgb, var(--line) 22%, transparent); }
+.table-scroll { overflow-x: auto; }
+
+.pos { color: var(--verdigris); }
+.neg { color: var(--brick); }
+
+/* ------------------------------------------------------------------ charts */
+
+.chartbox { margin-block: 1.25rem; }
+.chartbox__title { font-size: 0.9375rem; color: var(--fg-dim); margin: 0 0 0.5rem; }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+
+.chart__line     { fill: none; stroke: var(--marigold); stroke-width: 1.8; stroke-linejoin: round; }
+.chart__line50   { fill: none; stroke: var(--verdigris); stroke-width: 1.3; stroke-dasharray: 5 3; }
+.chart__line200  { fill: none; stroke: color-mix(in srgb, var(--fg-dim) 85%, transparent); stroke-width: 1.3; }
+.chart__linedot  { fill: var(--marigold); }
+.chart__line50dot{ fill: var(--verdigris); }
+.chart__area     { fill: color-mix(in srgb, var(--marigold) 12%, transparent); stroke: none; }
+.chart__grid     { stroke: var(--line); stroke-width: 1; }
+.chart__axisline { stroke: var(--line); stroke-width: 1.5; }
+.chart__vol      { fill: color-mix(in srgb, var(--fg-dim) 30%, transparent); }
+.chart__dot      { fill: var(--marigold); }
+
+.chart__bar      { fill: color-mix(in srgb, var(--marigold) 78%, transparent); }
+.chart__bar2     { fill: color-mix(in srgb, var(--verdigris) 80%, transparent); }
+.chart__marginline { fill: none; stroke: var(--fg-hi); stroke-width: 1.6; }
+.chart__margindot  { fill: var(--fg-hi); }
+
+.chart__band     { fill: color-mix(in srgb, var(--verdigris) 12%, transparent); }
+.chart__median   { stroke: var(--verdigris); stroke-width: 1.2; stroke-dasharray: 4 3; }
+
+.chart__range    { fill: color-mix(in srgb, var(--marigold) 26%, transparent); }
+.chart__tick     { stroke: var(--fg-dim); stroke-width: 1.4; }
+.chart__now      { stroke: var(--brick); stroke-width: 2; }
+.chart__nowlabel { fill: var(--brick); font-family: var(--mono); font-size: 13px; }
+.chart__value    { fill: var(--fg-hi); font-family: var(--mono); font-size: 14px; }
+
+.chart__axis     { fill: var(--fg-dim); font-family: var(--mono); font-size: 12px; }
+.chart__last     { fill: var(--marigold); font-family: var(--mono); font-size: 13px; }
+.chart__empty    { fill: var(--fg-dim); font-family: var(--sans); font-size: 14px; }
+.chart__legend text { fill: var(--fg-dim); font-family: var(--sans); font-size: 12.5px; }
+.chart__legend .chart__key50  { fill: var(--verdigris); }
+.chart__legend .chart__key200 { fill: var(--fg-dim); }
+.chart__legend .chart__key2   { fill: var(--verdigris); }
+.chart__legend .chart__keymargin { fill: var(--fg-hi); }
+
+.spark { vertical-align: middle; }
+.spark path { fill: none; stroke-width: 1.4; }
+.spark--up path { stroke: var(--verdigris); }
+.spark--up circle { fill: var(--verdigris); }
+.spark--down path { stroke: var(--brick); }
+.spark--down circle { fill: var(--brick); }
+
+/* ------------------------------------------------------------------- notes */
+
+.note {
+  border-left: 3px solid var(--marigold);
+  padding: 0.75rem 0 0.75rem 1rem;
+  margin-block: 1rem;
+  max-width: var(--measure);
+}
+.note--negative { border-left-color: var(--brick); }
+.note--positive { border-left-color: var(--verdigris); }
+.note h4 { font-size: var(--step-0); margin-bottom: 0.25rem; }
+.note p { margin: 0; font-size: 0.9375rem; color: var(--fg); line-height: 1.6; }
+
+.stack { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 0.45rem 1rem; font-size: 0.9375rem; }
+.kv dt { color: var(--fg-dim); }
+.kv dd { margin: 0; font-family: var(--mono); color: var(--fg-hi); text-align: right; }
+
+.list-clean { margin: 0; padding-left: 1.1rem; max-width: var(--measure); }
+.list-clean li { margin-bottom: 0.4rem; }
+
+/* ----------------------------------------------------------- rubric / bars */
+
+.rubric { display: grid; gap: 0.5rem; font-size: 0.9375rem; }
+.rubric__row { display: grid; grid-template-columns: 1fr auto 5rem; gap: 0.75rem; align-items: center; }
+.rubric__track { height: 4px; background: color-mix(in srgb, var(--line) 55%, transparent); border-radius: 2px; }
+.rubric__fill { height: 100%; background: var(--marigold); border-radius: 2px; }
+.rubric__detail { grid-column: 1 / -1; color: var(--fg-dim); margin-top: -0.15rem; }
+
+/* ------------------------------------------------------------------ footer */
+
+.colophon { padding-block: 2.5rem 3.5rem; border-top: 2px solid var(--line); }
+.colophon__credit { max-width: var(--measure); }
+.colophon__credit h3 { font-family: var(--serif); font-size: var(--step-1); margin-bottom: 0.5rem; }
+.colophon__credit p { margin: 0 0 0.6em; font-size: 0.9375rem; color: var(--fg-dim); line-height: 1.65; }
+.colophon__credit .creds { font-family: var(--mono); color: var(--fg); }
+.colophon__disclaimer { margin-top: 1.75rem; max-width: var(--measure); font-size: 0.9375rem; color: var(--fg-dim); line-height: 1.7; }
+.colophon__disclaimer strong { color: var(--fg); }
+
+.banner {
+  background: color-mix(in srgb, var(--marigold) 14%, transparent);
+  border-block: 1px solid color-mix(in srgb, var(--marigold) 40%, transparent);
+  padding: 0.6rem 0;
+  font-size: var(--micro);
+  color: var(--fg);
+}
+.banner .shell { display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------------ print */
+
+@media print {
+  body.paper { background: #fff; }
+  .banner, .masthead__note { color: #000; }
+  section { break-inside: avoid; border-color: #ccc; }
+  .weightbar { border-color: #999; }
+  a { text-decoration: none; }
+}
+</style>
+</head>
+<body class="paper">
+
+<div class="banner">
+  <div class="shell">
+    <strong>Educational demonstration.</strong>
+    <span>This page shows how the V1.2 scoring framework reaches a conclusion. It is not investment advice and not a recommendation to buy or sell.</span>
+  </div>
+</div>
+
+<header class="masthead shell">
+  <span class="masthead__name">India Equity Research Terminal</span>
+  <span class="masthead__note">Analysis dated 10 September 2026</span>
+</header>
+
+<main class="shell">
+
+  <section>
+    <div class="identity">
+      <div>
+        <h1>Reliance Industries Limited</h1>
+        <div class="factline">
+          <span>NSE <b>RELIANCE</b></span>
+<span>Sector <b>Energy</b></span><span>Framework <b>Generic</b></span><span>Market value <b>₹1,724,037 cr</b></span>        </div>
+      </div>
+      <div class="identity__price">
+        <div class="value">₹1,274.00</div>
+        <div class="small dim">Price used in this analysis</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="weightbar">
+      <div class="weightbar__top">
+        <div>
+          <div class="weightbar__score">65.0<small> / 100</small></div>
+          <div class="weightbar__band small dim">WATCHLIST</div>
+        </div>
+        <div class="verdict tone-neutral">
+          <span class="verdict__word">HOLD</span>
+        </div>
+      </div>
+
+      <div class="columns" role="img" aria-label="Seven categories. Column width is the category weight, fill height is the score, so filled area equals the total.">
+        <div class="column" style="flex: 20 1 0; height: 100%;">
+          <div class="column__fill" style="height: 70.0%;"></div>
+        </div>
+        <div class="column" style="flex: 20 1 0; height: 100%;">
+          <div class="column__fill" style="height: 60.0%;"></div>
+        </div>
+        <div class="column" style="flex: 15 1 0; height: 100%;">
+          <div class="column__fill" style="height: 70.0%;"></div>
+        </div>
+        <div class="column" style="flex: 20 1 0; height: 100%;">
+          <div class="column__fill" style="height: 60.0%;"></div>
+        </div>
+        <div class="column" style="flex: 10 1 0; height: 100%;">
+          <div class="column__fill" style="height: 70.0%;"></div>
+        </div>
+        <div class="column" style="flex: 5 1 0; height: 100%;">
+          <div class="column__fill" style="height: 50.0%;"></div>
+        </div>
+        <div class="column" style="flex: 10 1 0; height: 100%;">
+          <div class="column__fill" style="height: 70.0%;"></div>
+        </div>
+      </div>
+      <div class="captions">
+        <div class="column__caption" style="flex: 20 1 0;">
+          <b>7</b>Quality
+        </div>
+        <div class="column__caption" style="flex: 20 1 0;">
+          <b>6</b>Growth
+        </div>
+        <div class="column__caption" style="flex: 15 1 0;">
+          <b>7</b>Earnings
+        </div>
+        <div class="column__caption" style="flex: 20 1 0;">
+          <b>6</b>Valuation
+        </div>
+        <div class="column__caption" style="flex: 10 1 0;">
+          <b>7</b>Competitive Moat
+        </div>
+        <div class="column__caption" style="flex: 5 1 0;">
+          <b>5</b>Catalysts
+        </div>
+        <div class="column__caption" style="flex: 10 1 0;">
+          <b>7</b>Risk
+        </div>
+      </div>
+      <p class="small dim" style="margin: 1rem 0 0; max-width: 62ch;">
+        Each column is as wide as the category's weight and as full as its score, so the shaded
+        area is the total out of a hundred. Valuation and quality each carry a fifth of the verdict.
+      </p>
+    </div>
+
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Price</h2>
+      <p>Five years of weekly closes against the 50 and 200 day averages, with volume beneath.</p>
+    </div>
+    <div class="chartbox"><svg class="chart" viewBox="0 0 900 300" preserveAspectRatio="none" role="img" aria-label="Share price with 50 and 200 day moving averages">
+  <line class="chart__grid" x1="8" y1="12.0" x2="836" y2="12.0"/><text class="chart__axis" x="842" y="15.5">1,632</text><line class="chart__grid" x1="8" y1="114.0" x2="836" y2="114.0"/><text class="chart__axis" x="842" y="117.5">1,307</text><line class="chart__grid" x1="8" y1="216.0" x2="836" y2="216.0"/><text class="chart__axis" x="842" y="219.5">982</text>
+  <path class="chart__area" d="M 8.0,177.9 L 11.2,164.6 L 14.4,158.6 L 17.6,137.2 L 20.7,133.0 L 23.9,143.6 L 27.1,156.8 L 30.3,162.2 L 33.5,148.6 L 36.7,165.9 L 39.8,174.7 L 43.0,175.4 L 46.2,168.0 L 49.4,185.2 L 52.6,180.5 L 55.8,181.2 L 59.0,171.3 L 62.1,156.4 L 65.3,165.3 L 68.5,185.9 L 71.7,186.5 L 74.9,180.0 L 78.1,173.0 L 81.2,193.4 L 84.4,187.4 L 87.6,176.7 L 90.8,164.7 L 94.0,148.2 L 97.2,139.5 L 100.4,145.3 L 103.5,154.6 L 106.7,124.5 L 109.9,120.0 L 113.1,144.6 L 116.3,172.7 L 119.5,144.0 L 122.6,151.2 L 125.8,121.5 L 129.0,131.0 L 132.2,149.0 L 135.4,162.1 L 138.6,175.3 L 141.8,177.8 L 144.9,176.3 L 148.1,161.6 L 151.3,160.7 L 154.5,157.1 L 157.7,142.8 L 160.9,145.6 L 164.0,145.0 L 167.2,157.6 L 170.4,152.0 L 173.6,162.2 L 176.8,170.8 L 180.0,179.8 L 183.2,171.9 L 186.3,180.8 L 189.5,166.2 L 192.7,158.3 L 195.9,148.6 L 199.1,143.0 L 202.3,147.9 L 205.4,145.0 L 208.6,129.9 L 211.8,146.2 L 215.0,152.6 L 218.2,161.7 L 221.4,155.2 L 224.6,156.7 L 227.7,166.8 L 230.9,170.4 L 234.1,185.6 L 237.3,186.9 L 240.5,185.7 L 243.7,170.7 L 246.8,178.9 L 250.0,178.7 L 253.2,187.8 L 256.4,202.2 L 259.6,205.1 L 262.8,186.6 L 266.0,185.0 L 269.1,183.0 L 272.3,184.0 L 275.5,173.6 L 278.7,170.5 L 281.9,164.3 L 285.1,170.5 L 288.2,161.1 L 291.4,168.6 L 294.6,164.7 L 297.8,150.8 L 301.0,159.9 L 304.2,154.8 L 307.4,142.7 L 310.5,127.2 L 313.7,125.7 L 316.9,127.5 L 320.1,130.3 L 323.3,124.4 L 326.5,122.9 L 329.6,136.8 L 332.8,145.6 L 336.0,140.0 L 339.2,138.4 L 342.4,154.6 L 345.6,156.2 L 348.8,160.4 L 351.9,155.5 L 355.1,163.4 L 358.3,168.6 L 361.5,160.1 L 364.7,160.9 L 367.9,154.5 L 371.0,148.5 L 374.2,148.4 L 377.4,138.8 L 380.6,132.5 L 383.8,121.6 L 387.0,118.5 L 390.2,114.9 L 393.3,93.9 L 396.5,94.9 L 399.7,99.5 L 402.9,66.6 L 406.1,65.6 L 409.3,65.7 L 412.4,55.3 L 415.6,55.8 L 418.8,59.9 L 422.0,79.0 L 425.2,67.4 L 428.4,57.8 L 431.6,65.8 L 434.7,63.6 L 437.9,62.7 L 441.1,68.2 L 444.3,74.0 L 447.5,82.4 L 450.7,73.5 L 453.8,59.5 L 457.0,75.2 L 460.2,62.7 L 463.4,60.4 L 466.6,67.7 L 469.8,32.8 L 473.0,25.5 L 476.1,22.9 L 479.3,36.0 L 482.5,50.5 L 485.7,53.5 L 488.9,61.4 L 492.1,60.2 L 495.2,53.3 L 498.4,50.3 L 501.6,64.4 L 504.8,61.9 L 508.0,57.7 L 511.2,45.1 L 514.4,88.9 L 517.5,93.5 L 520.7,97.5 L 523.9,107.4 L 527.1,104.0 L 530.3,121.2 L 533.5,126.3 L 536.6,127.0 L 539.8,118.6 L 543.0,112.5 L 546.2,124.7 L 549.4,145.9 L 552.6,140.9 L 555.8,131.5 L 558.9,134.4 L 562.1,115.4 L 565.3,133.0 L 568.5,127.2 L 571.7,126.6 L 574.9,142.1 L 578.0,138.7 L 581.2,147.5 L 584.4,131.9 L 587.6,132.5 L 590.8,123.6 L 594.0,123.9 L 597.2,146.1 L 600.3,141.6 L 603.5,124.1 L 606.7,116.0 L 609.9,78.5 L 613.1,91.9 L 616.3,67.0 L 619.4,76.3 L 622.6,78.2 L 625.8,71.1 L 629.0,76.0 L 632.2,63.9 L 635.4,48.5 L 638.6,44.7 L 641.7,54.8 L 644.9,60.8 L 648.1,87.3 L 651.3,86.7 L 654.5,94.8 L 657.7,92.9 L 660.8,81.8 L 664.0,98.2 L 667.2,92.6 L 670.4,86.3 L 673.6,82.4 L 676.8,91.8 L 680.0,96.2 L 683.1,90.5 L 686.3,79.4 L 689.5,68.5 L 692.7,57.6 L 695.9,60.2 L 699.1,47.4 L 702.2,38.7 L 705.4,32.1 L 708.6,40.6 L 711.8,35.6 L 715.0,32.9 L 718.2,34.7 L 721.4,24.3 L 724.5,61.1 L 727.7,66.5 L 730.9,89.1 L 734.1,86.2 L 737.3,68.8 L 740.5,78.6 L 743.6,78.6 L 746.8,86.6 L 750.0,83.2 L 753.2,90.8 L 756.4,80.2 L 759.6,101.0 L 762.8,100.3 L 765.9,100.4 L 769.1,95.7 L 772.3,107.4 L 775.5,75.0 L 778.7,73.7 L 781.9,104.7 L 785.0,99.0 L 788.2,109.5 L 791.4,119.0 L 794.6,118.3 L 797.8,113.1 L 801.0,110.4 L 804.2,114.9 L 807.3,113.7 L 810.5,107.6 L 813.7,123.0 L 816.9,113.7 L 820.1,105.2 L 823.3,113.0 L 826.4,111.1 L 829.6,120.2 L 832.8,109.2 L 836.0,124.3 L 836.0,216 L 8.0,216 Z"/>
+  <path class="chart__line" d="M 8.0,177.9 L 11.2,164.6 L 14.4,158.6 L 17.6,137.2 L 20.7,133.0 L 23.9,143.6 L 27.1,156.8 L 30.3,162.2 L 33.5,148.6 L 36.7,165.9 L 39.8,174.7 L 43.0,175.4 L 46.2,168.0 L 49.4,185.2 L 52.6,180.5 L 55.8,181.2 L 59.0,171.3 L 62.1,156.4 L 65.3,165.3 L 68.5,185.9 L 71.7,186.5 L 74.9,180.0 L 78.1,173.0 L 81.2,193.4 L 84.4,187.4 L 87.6,176.7 L 90.8,164.7 L 94.0,148.2 L 97.2,139.5 L 100.4,145.3 L 103.5,154.6 L 106.7,124.5 L 109.9,120.0 L 113.1,144.6 L 116.3,172.7 L 119.5,144.0 L 122.6,151.2 L 125.8,121.5 L 129.0,131.0 L 132.2,149.0 L 135.4,162.1 L 138.6,175.3 L 141.8,177.8 L 144.9,176.3 L 148.1,161.6 L 151.3,160.7 L 154.5,157.1 L 157.7,142.8 L 160.9,145.6 L 164.0,145.0 L 167.2,157.6 L 170.4,152.0 L 173.6,162.2 L 176.8,170.8 L 180.0,179.8 L 183.2,171.9 L 186.3,180.8 L 189.5,166.2 L 192.7,158.3 L 195.9,148.6 L 199.1,143.0 L 202.3,147.9 L 205.4,145.0 L 208.6,129.9 L 211.8,146.2 L 215.0,152.6 L 218.2,161.7 L 221.4,155.2 L 224.6,156.7 L 227.7,166.8 L 230.9,170.4 L 234.1,185.6 L 237.3,186.9 L 240.5,185.7 L 243.7,170.7 L 246.8,178.9 L 250.0,178.7 L 253.2,187.8 L 256.4,202.2 L 259.6,205.1 L 262.8,186.6 L 266.0,185.0 L 269.1,183.0 L 272.3,184.0 L 275.5,173.6 L 278.7,170.5 L 281.9,164.3 L 285.1,170.5 L 288.2,161.1 L 291.4,168.6 L 294.6,164.7 L 297.8,150.8 L 301.0,159.9 L 304.2,154.8 L 307.4,142.7 L 310.5,127.2 L 313.7,125.7 L 316.9,127.5 L 320.1,130.3 L 323.3,124.4 L 326.5,122.9 L 329.6,136.8 L 332.8,145.6 L 336.0,140.0 L 339.2,138.4 L 342.4,154.6 L 345.6,156.2 L 348.8,160.4 L 351.9,155.5 L 355.1,163.4 L 358.3,168.6 L 361.5,160.1 L 364.7,160.9 L 367.9,154.5 L 371.0,148.5 L 374.2,148.4 L 377.4,138.8 L 380.6,132.5 L 383.8,121.6 L 387.0,118.5 L 390.2,114.9 L 393.3,93.9 L 396.5,94.9 L 399.7,99.5 L 402.9,66.6 L 406.1,65.6 L 409.3,65.7 L 412.4,55.3 L 415.6,55.8 L 418.8,59.9 L 422.0,79.0 L 425.2,67.4 L 428.4,57.8 L 431.6,65.8 L 434.7,63.6 L 437.9,62.7 L 441.1,68.2 L 444.3,74.0 L 447.5,82.4 L 450.7,73.5 L 453.8,59.5 L 457.0,75.2 L 460.2,62.7 L 463.4,60.4 L 466.6,67.7 L 469.8,32.8 L 473.0,25.5 L 476.1,22.9 L 479.3,36.0 L 482.5,50.5 L 485.7,53.5 L 488.9,61.4 L 492.1,60.2 L 495.2,53.3 L 498.4,50.3 L 501.6,64.4 L 504.8,61.9 L 508.0,57.7 L 511.2,45.1 L 514.4,88.9 L 517.5,93.5 L 520.7,97.5 L 523.9,107.4 L 527.1,104.0 L 530.3,121.2 L 533.5,126.3 L 536.6,127.0 L 539.8,118.6 L 543.0,112.5 L 546.2,124.7 L 549.4,145.9 L 552.6,140.9 L 555.8,131.5 L 558.9,134.4 L 562.1,115.4 L 565.3,133.0 L 568.5,127.2 L 571.7,126.6 L 574.9,142.1 L 578.0,138.7 L 581.2,147.5 L 584.4,131.9 L 587.6,132.5 L 590.8,123.6 L 594.0,123.9 L 597.2,146.1 L 600.3,141.6 L 603.5,124.1 L 606.7,116.0 L 609.9,78.5 L 613.1,91.9 L 616.3,67.0 L 619.4,76.3 L 622.6,78.2 L 625.8,71.1 L 629.0,76.0 L 632.2,63.9 L 635.4,48.5 L 638.6,44.7 L 641.7,54.8 L 644.9,60.8 L 648.1,87.3 L 651.3,86.7 L 654.5,94.8 L 657.7,92.9 L 660.8,81.8 L 664.0,98.2 L 667.2,92.6 L 670.4,86.3 L 673.6,82.4 L 676.8,91.8 L 680.0,96.2 L 683.1,90.5 L 686.3,79.4 L 689.5,68.5 L 692.7,57.6 L 695.9,60.2 L 699.1,47.4 L 702.2,38.7 L 705.4,32.1 L 708.6,40.6 L 711.8,35.6 L 715.0,32.9 L 718.2,34.7 L 721.4,24.3 L 724.5,61.1 L 727.7,66.5 L 730.9,89.1 L 734.1,86.2 L 737.3,68.8 L 740.5,78.6 L 743.6,78.6 L 746.8,86.6 L 750.0,83.2 L 753.2,90.8 L 756.4,80.2 L 759.6,101.0 L 762.8,100.3 L 765.9,100.4 L 769.1,95.7 L 772.3,107.4 L 775.5,75.0 L 778.7,73.7 L 781.9,104.7 L 785.0,99.0 L 788.2,109.5 L 791.4,119.0 L 794.6,118.3 L 797.8,113.1 L 801.0,110.4 L 804.2,114.9 L 807.3,113.7 L 810.5,107.6 L 813.7,123.0 L 816.9,113.7 L 820.1,105.2 L 823.3,113.0 L 826.4,111.1 L 829.6,120.2 L 832.8,109.2 L 836.0,124.3"/>
+  <path class="chart__line50" d="M 39.8,156.5 L 43.0,155.9 L 46.2,157.0 L 49.4,159.4 L 52.6,163.6 L 55.8,168.3 L 59.0,171.1 L 62.1,171.6 L 65.3,171.8 L 68.5,173.9 L 71.7,174.6 L 74.9,175.7 L 78.1,175.7 L 81.2,176.7 L 84.4,176.2 L 87.6,177.0 L 90.8,176.8 L 94.0,175.3 L 97.2,173.8 L 100.4,171.3 L 103.5,169.3 L 106.7,164.5 L 109.9,158.6 L 113.1,155.6 L 116.3,154.0 L 119.5,151.4 L 122.6,147.9 L 125.8,144.4 L 129.0,142.1 L 132.2,142.7 L 135.4,143.8 L 138.6,145.6 L 141.8,150.8 L 144.9,155.2 L 148.1,154.9 L 151.3,156.0 L 154.5,156.4 L 157.7,157.2 L 160.9,158.5 L 164.0,159.2 L 167.2,159.1 L 170.4,157.9 L 173.6,156.6 L 176.8,155.5 L 180.0,156.1 L 183.2,156.9 L 186.3,158.3 L 189.5,159.9 L 192.7,161.5 L 195.9,162.7 L 199.1,163.0 L 202.3,162.6 L 205.4,162.9 L 208.6,160.1 L 211.8,157.0 L 215.0,153.6 L 218.2,151.0 L 221.4,149.3 L 224.6,148.2 L 227.7,148.5 L 230.9,150.5 L 234.1,153.0 L 237.3,156.3 L 240.5,161.6 L 243.7,165.6 L 246.8,168.7 L 250.0,172.2 L 253.2,174.0 L 256.4,178.3 L 259.6,182.7 L 262.8,185.1 L 266.0,186.2 L 269.1,186.8 L 272.3,186.7 L 275.5,186.0 L 278.7,185.5 L 281.9,184.4 L 285.1,182.9 L 288.2,181.7 L 291.4,178.3 L 294.6,174.7 L 297.8,170.9 L 301.0,167.9 L 304.2,166.0 L 307.4,162.3 L 310.5,157.5 L 313.7,152.6 L 316.9,149.0 L 320.1,145.0 L 323.3,141.5 L 326.5,138.1 L 329.6,135.1 L 332.8,134.2 L 336.0,132.5 L 339.2,131.6 L 342.4,133.2 L 345.6,136.8 L 348.8,139.5 L 351.9,142.6 L 355.1,145.3 L 358.3,149.0 L 361.5,152.7 L 364.7,154.9 L 367.9,155.8 L 371.0,156.7 L 374.2,157.4 L 377.4,156.3 L 380.6,154.5 L 383.8,150.8 L 387.0,147.8 L 390.2,143.3 L 393.3,137.2 L 396.5,130.5 L 399.7,127.1 L 402.9,118.9 L 406.1,111.1 L 409.3,102.9 L 412.4,94.9 L 415.6,87.8 L 418.8,82.3 L 422.0,77.7 L 425.2,73.0 L 428.4,70.7 L 431.6,67.6 L 434.7,64.9 L 437.9,64.0 L 441.1,63.5 L 444.3,63.7 L 447.5,65.7 L 450.7,67.5 L 453.8,68.4 L 457.0,68.8 L 460.2,68.4 L 463.4,68.6 L 466.6,68.7 L 469.8,67.8 L 473.0,64.8 L 476.1,60.6 L 479.3,56.9 L 482.5,54.1 L 485.7,51.7 L 488.9,52.0 L 492.1,51.3 L 495.2,49.9 L 498.4,48.7 L 501.6,47.7 L 504.8,50.5 L 508.0,53.9 L 511.2,56.7 L 514.4,58.6 L 517.5,62.7 L 520.7,66.5 L 523.9,70.2 L 527.1,75.0 L 530.3,81.4 L 533.5,87.5 L 536.6,93.1 L 539.8,98.8 L 543.0,104.0 L 546.2,110.7 L 549.4,115.3 L 552.6,119.0 L 555.8,123.0 L 558.9,125.9 L 562.1,127.9 L 565.3,128.5 L 568.5,128.7 L 571.7,129.2 L 574.9,131.9 L 578.0,133.5 L 581.2,134.6 L 584.4,135.4 L 587.6,134.7 L 590.8,134.5 L 594.0,133.4 L 597.2,134.6 L 600.3,136.0 L 603.5,136.0 L 606.7,135.2 L 609.9,131.3 L 613.1,125.4 L 616.3,118.5 L 619.4,110.9 L 622.6,105.5 L 625.8,100.1 L 629.0,95.1 L 632.2,88.3 L 635.4,80.0 L 638.6,72.9 L 641.7,68.4 L 644.9,66.2 L 648.1,66.9 L 651.3,67.8 L 654.5,68.8 L 657.7,69.8 L 660.8,70.9 L 664.0,72.0 L 667.2,74.8 L 670.4,78.9 L 673.6,82.7 L 676.8,86.2 L 680.0,88.2 L 683.1,89.1 L 686.3,89.4 L 689.5,87.6 L 692.7,84.4 L 695.9,82.6 L 699.1,78.4 L 702.2,73.4 L 705.4,68.3 L 708.6,63.8 L 711.8,58.6 L 715.0,52.9 L 718.2,48.2 L 721.4,43.8 L 724.5,42.8 L 727.7,43.5 L 730.9,46.6 L 734.1,49.8 L 737.3,53.3 L 740.5,56.6 L 743.6,60.1 L 746.8,64.4 L 750.0,69.2 L 753.2,74.1 L 756.4,78.8 L 759.6,80.7 L 762.8,82.7 L 765.9,85.0 L 769.1,86.2 L 772.3,88.9 L 775.5,90.2 L 778.7,89.6 L 781.9,91.1 L 785.0,92.4 L 788.2,93.8 L 791.4,96.7 L 794.6,100.1 L 797.8,100.3 L 801.0,101.1 L 804.2,102.6 L 807.3,106.1 L 810.5,110.7 L 813.7,112.8 L 816.9,114.7 L 820.1,115.9 L 823.3,115.5 L 826.4,114.1 L 829.6,114.8 L 832.8,115.1 L 836.0,115.5"/>
+  <path class="chart__line200" d="M 138.6,160.6 L 141.8,160.6 L 144.9,160.8 L 148.1,161.0 L 151.3,161.7 L 154.5,162.1 L 157.7,162.2 L 160.9,162.1 L 164.0,161.7 L 167.2,161.6 L 170.4,161.2 L 173.6,160.7 L 176.8,160.4 L 180.0,160.7 L 183.2,160.6 L 186.3,160.4 L 189.5,160.1 L 192.7,160.0 L 195.9,159.7 L 199.1,159.5 L 202.3,158.8 L 205.4,158.1 L 208.6,156.7 L 211.8,155.8 L 215.0,155.0 L 218.2,154.1 L 221.4,153.3 L 224.6,152.9 L 227.7,153.1 L 230.9,153.8 L 234.1,154.4 L 237.3,155.3 L 240.5,156.8 L 243.7,158.1 L 246.8,158.7 L 250.0,159.1 L 253.2,159.7 L 256.4,161.0 L 259.6,162.8 L 262.8,164.1 L 266.0,164.7 L 269.1,165.3 L 272.3,165.9 L 275.5,166.2 L 278.7,166.1 L 281.9,165.8 L 285.1,165.9 L 288.2,166.1 L 291.4,166.4 L 294.6,166.9 L 297.8,167.2 L 301.0,167.4 L 304.2,167.6 L 307.4,167.5 L 310.5,166.6 L 313.7,165.0 L 316.9,163.9 L 320.1,162.7 L 323.3,161.7 L 326.5,160.8 L 329.6,160.2 L 332.8,160.2 L 336.0,160.0 L 339.2,159.8 L 342.4,160.2 L 345.6,160.7 L 348.8,160.9 L 351.9,161.2 L 355.1,161.2 L 358.3,161.5 L 361.5,161.7 L 364.7,161.5 L 367.9,161.2 L 371.0,160.4 L 374.2,159.6 L 377.4,158.5 L 380.6,157.7 L 383.8,156.3 L 387.0,155.0 L 390.2,153.2 L 393.3,150.9 L 396.5,148.2 L 399.7,146.9 L 402.9,144.1 L 406.1,141.3 L 409.3,138.4 L 412.4,135.6 L 415.6,133.0 L 418.8,130.7 L 422.0,128.2 L 425.2,125.9 L 428.4,124.4 L 431.6,121.8 L 434.7,120.0 L 437.9,118.2 L 441.1,115.9 L 444.3,114.3 L 447.5,113.2 L 450.7,112.2 L 453.8,110.9 L 457.0,109.4 L 460.2,107.9 L 463.4,106.5 L 466.6,105.1 L 469.8,102.9 L 473.0,100.1 L 476.1,97.3 L 479.3,94.9 L 482.5,92.4 L 485.7,89.6 L 488.9,87.3 L 492.1,85.5 L 495.2,82.6 L 498.4,79.8 L 501.6,77.2 L 504.8,74.9 L 508.0,72.7 L 511.2,70.4 L 514.4,69.1 L 517.5,67.9 L 520.7,67.3 L 523.9,67.0 L 527.1,66.6 L 530.3,67.1 L 533.5,67.7 L 536.6,68.6 L 539.8,69.7 L 543.0,70.8 L 546.2,72.3 L 549.4,74.2 L 552.6,75.9 L 555.8,77.9 L 558.9,79.3 L 562.1,80.9 L 565.3,82.5 L 568.5,84.6 L 571.7,86.1 L 574.9,87.9 L 578.0,89.5 L 581.2,90.8 L 584.4,92.7 L 587.6,94.1 L 590.8,95.5 L 594.0,96.8 L 597.2,98.3 L 600.3,100.0 L 603.5,101.2 L 606.7,103.2 L 609.9,104.4 L 613.1,105.8 L 616.3,106.4 L 619.4,107.1 L 622.6,107.4 L 625.8,107.7 L 629.0,108.1 L 632.2,108.7 L 635.4,108.9 L 638.6,108.4 L 641.7,108.1 L 644.9,108.2 L 648.1,108.3 L 651.3,108.1 L 654.5,107.8 L 657.7,107.6 L 660.8,107.0 L 664.0,106.5 L 667.2,105.8 L 670.4,104.8 L 673.6,103.9 L 676.8,103.3 L 680.0,102.7 L 683.1,101.7 L 686.3,100.3 L 689.5,98.9 L 692.7,97.0 L 695.9,95.5 L 699.1,93.8 L 702.2,91.5 L 705.4,89.2 L 708.6,86.9 L 711.8,84.4 L 715.0,81.8 L 718.2,79.4 L 721.4,76.8 L 724.5,74.8 L 727.7,73.4 L 730.9,72.2 L 734.1,70.9 L 737.3,69.6 L 740.5,68.7 L 743.6,68.6 L 746.8,68.6 L 750.0,69.0 L 753.2,69.2 L 756.4,69.3 L 759.6,69.6 L 762.8,70.0 L 765.9,70.9 L 769.1,71.6 L 772.3,72.9 L 775.5,73.8 L 778.7,74.2 L 781.9,74.8 L 785.0,75.3 L 788.2,75.6 L 791.4,76.2 L 794.6,77.3 L 797.8,77.8 L 801.0,78.2 L 804.2,78.8 L 807.3,79.7 L 810.5,80.3 L 813.7,80.9 L 816.9,81.6 L 820.1,82.4 L 823.3,83.5 L 826.4,84.9 L 829.6,86.4 L 832.8,88.1 L 836.0,89.7"/>
+  <circle class="chart__dot" cx="836.0" cy="124.3" r="3.5"/><text class="chart__last" x="842" y="127.8">1,274</text>
+  <rect class="chart__vol" x="6.9" y="257.5" width="2.2" height="26.5"/><rect class="chart__vol" x="10.1" y="263.6" width="2.2" height="20.4"/><rect class="chart__vol" x="13.3" y="263.0" width="2.2" height="21.0"/><rect class="chart__vol" x="16.4" y="265.8" width="2.2" height="18.2"/><rect class="chart__vol" x="19.6" y="271.2" width="2.2" height="12.8"/><rect class="chart__vol" x="22.8" y="262.6" width="2.2" height="21.4"/><rect class="chart__vol" x="26.0" y="264.5" width="2.2" height="19.5"/><rect class="chart__vol" x="29.2" y="271.3" width="2.2" height="12.7"/><rect class="chart__vol" x="32.4" y="263.0" width="2.2" height="21.0"/><rect class="chart__vol" x="35.6" y="272.8" width="2.2" height="11.2"/><rect class="chart__vol" x="38.7" y="244.2" width="2.2" height="39.8"/><rect class="chart__vol" x="41.9" y="252.5" width="2.2" height="31.5"/><rect class="chart__vol" x="45.1" y="267.4" width="2.2" height="16.6"/><rect class="chart__vol" x="48.3" y="262.8" width="2.2" height="21.2"/><rect class="chart__vol" x="51.5" y="264.2" width="2.2" height="19.8"/><rect class="chart__vol" x="54.7" y="263.3" width="2.2" height="20.7"/><rect class="chart__vol" x="57.8" y="266.2" width="2.2" height="17.8"/><rect class="chart__vol" x="61.0" y="260.9" width="2.2" height="23.1"/><rect class="chart__vol" x="64.2" y="266.8" width="2.2" height="17.2"/><rect class="chart__vol" x="67.4" y="258.0" width="2.2" height="26.0"/><rect class="chart__vol" x="70.6" y="266.1" width="2.2" height="17.9"/><rect class="chart__vol" x="73.8" y="263.9" width="2.2" height="20.1"/><rect class="chart__vol" x="77.0" y="267.4" width="2.2" height="16.6"/><rect class="chart__vol" x="80.1" y="261.2" width="2.2" height="22.8"/><rect class="chart__vol" x="83.3" y="263.6" width="2.2" height="20.4"/><rect class="chart__vol" x="86.5" y="255.2" width="2.2" height="28.8"/><rect class="chart__vol" x="89.7" y="265.8" width="2.2" height="18.2"/><rect class="chart__vol" x="92.9" y="259.2" width="2.2" height="24.8"/><rect class="chart__vol" x="96.1" y="266.2" width="2.2" height="17.8"/><rect class="chart__vol" x="99.2" y="263.5" width="2.2" height="20.5"/><rect class="chart__vol" x="102.4" y="273.5" width="2.2" height="10.5"/><rect class="chart__vol" x="105.6" y="252.6" width="2.2" height="31.4"/><rect class="chart__vol" x="108.8" y="254.4" width="2.2" height="29.6"/><rect class="chart__vol" x="112.0" y="263.0" width="2.2" height="21.0"/><rect class="chart__vol" x="115.2" y="253.9" width="2.2" height="30.1"/><rect class="chart__vol" x="118.4" y="257.2" width="2.2" height="26.8"/><rect class="chart__vol" x="121.5" y="259.7" width="2.2" height="24.3"/><rect class="chart__vol" x="124.7" y="239.1" width="2.2" height="44.9"/><rect class="chart__vol" x="127.9" y="261.2" width="2.2" height="22.8"/><rect class="chart__vol" x="131.1" y="256.8" width="2.2" height="27.2"/><rect class="chart__vol" x="134.3" y="262.2" width="2.2" height="21.8"/><rect class="chart__vol" x="137.5" y="234.9" width="2.2" height="49.1"/><rect class="chart__vol" x="140.6" y="243.7" width="2.2" height="40.3"/><rect class="chart__vol" x="143.8" y="263.1" width="2.2" height="20.9"/><rect class="chart__vol" x="147.0" y="257.4" width="2.2" height="26.6"/><rect class="chart__vol" x="150.2" y="261.4" width="2.2" height="22.6"/><rect class="chart__vol" x="153.4" y="260.9" width="2.2" height="23.1"/><rect class="chart__vol" x="156.6" y="270.6" width="2.2" height="13.4"/><rect class="chart__vol" x="159.8" y="274.4" width="2.2" height="9.6"/><rect class="chart__vol" x="162.9" y="268.6" width="2.2" height="15.4"/><rect class="chart__vol" x="166.1" y="259.7" width="2.2" height="24.3"/><rect class="chart__vol" x="169.3" y="269.6" width="2.2" height="14.4"/><rect class="chart__vol" x="172.5" y="266.2" width="2.2" height="17.8"/><rect class="chart__vol" x="175.7" y="269.6" width="2.2" height="14.4"/><rect class="chart__vol" x="178.9" y="258.7" width="2.2" height="25.3"/><rect class="chart__vol" x="182.0" y="270.6" width="2.2" height="13.4"/><rect class="chart__vol" x="185.2" y="271.4" width="2.2" height="12.6"/><rect class="chart__vol" x="188.4" y="263.1" width="2.2" height="20.9"/><rect class="chart__vol" x="191.6" y="269.4" width="2.2" height="14.6"/><rect class="chart__vol" x="194.8" y="266.5" width="2.2" height="17.5"/><rect class="chart__vol" x="198.0" y="270.8" width="2.2" height="13.2"/><rect class="chart__vol" x="201.2" y="271.9" width="2.2" height="12.1"/><rect class="chart__vol" x="204.3" y="272.4" width="2.2" height="11.6"/><rect class="chart__vol" x="207.5" y="255.2" width="2.2" height="28.8"/><rect class="chart__vol" x="210.7" y="267.3" width="2.2" height="16.7"/><rect class="chart__vol" x="213.9" y="268.1" width="2.2" height="15.9"/><rect class="chart__vol" x="217.1" y="270.7" width="2.2" height="13.3"/><rect class="chart__vol" x="220.3" y="273.3" width="2.2" height="10.7"/><rect class="chart__vol" x="223.4" y="270.5" width="2.2" height="13.5"/><rect class="chart__vol" x="226.6" y="262.0" width="2.2" height="22.0"/><rect class="chart__vol" x="229.8" y="263.3" width="2.2" height="20.7"/><rect class="chart__vol" x="233.0" y="263.0" width="2.2" height="21.0"/><rect class="chart__vol" x="236.2" y="251.3" width="2.2" height="32.7"/><rect class="chart__vol" x="239.4" y="260.0" width="2.2" height="24.0"/><rect class="chart__vol" x="242.6" y="256.1" width="2.2" height="27.9"/><rect class="chart__vol" x="245.7" y="267.2" width="2.2" height="16.8"/><rect class="chart__vol" x="248.9" y="262.0" width="2.2" height="22.0"/><rect class="chart__vol" x="252.1" y="266.2" width="2.2" height="17.8"/><rect class="chart__vol" x="255.3" y="251.1" width="2.2" height="32.9"/><rect class="chart__vol" x="258.5" y="258.2" width="2.2" height="25.8"/><rect class="chart__vol" x="261.7" y="260.4" width="2.2" height="23.6"/><rect class="chart__vol" x="264.8" y="269.6" width="2.2" height="14.4"/><rect class="chart__vol" x="268.0" y="266.7" width="2.2" height="17.3"/><rect class="chart__vol" x="271.2" y="266.3" width="2.2" height="17.7"/><rect class="chart__vol" x="274.4" y="266.2" width="2.2" height="17.8"/><rect class="chart__vol" x="277.6" y="272.0" width="2.2" height="12.0"/><rect class="chart__vol" x="280.8" y="269.9" width="2.2" height="14.1"/><rect class="chart__vol" x="284.0" y="270.3" width="2.2" height="13.7"/><rect class="chart__vol" x="287.1" y="269.4" width="2.2" height="14.6"/><rect class="chart__vol" x="290.3" y="258.8" width="2.2" height="25.2"/><rect class="chart__vol" x="293.5" y="269.1" width="2.2" height="14.9"/><rect class="chart__vol" x="296.7" y="262.6" width="2.2" height="21.4"/><rect class="chart__vol" x="299.9" y="272.8" width="2.2" height="11.2"/><rect class="chart__vol" x="303.1" y="269.6" width="2.2" height="14.4"/><rect class="chart__vol" x="306.2" y="263.8" width="2.2" height="20.2"/><rect class="chart__vol" x="309.4" y="251.4" width="2.2" height="32.6"/><rect class="chart__vol" x="312.6" y="234.0" width="2.2" height="50.0"/><rect class="chart__vol" x="315.8" y="256.2" width="2.2" height="27.8"/><rect class="chart__vol" x="319.0" y="263.5" width="2.2" height="20.5"/><rect class="chart__vol" x="322.2" y="263.2" width="2.2" height="20.8"/><rect class="chart__vol" x="325.4" y="267.3" width="2.2" height="16.7"/><rect class="chart__vol" x="328.5" y="263.9" width="2.2" height="20.1"/><rect class="chart__vol" x="331.7" y="257.9" width="2.2" height="26.1"/><rect class="chart__vol" x="334.9" y="263.8" width="2.2" height="20.2"/><rect class="chart__vol" x="338.1" y="259.3" width="2.2" height="24.7"/><rect class="chart__vol" x="341.3" y="253.3" width="2.2" height="30.7"/><rect class="chart__vol" x="344.5" y="263.9" width="2.2" height="20.1"/><rect class="chart__vol" x="347.6" y="272.6" width="2.2" height="11.4"/><rect class="chart__vol" x="350.8" y="267.9" width="2.2" height="16.1"/><rect class="chart__vol" x="354.0" y="270.0" width="2.2" height="14.0"/><rect class="chart__vol" x="357.2" y="269.1" width="2.2" height="14.9"/><rect class="chart__vol" x="360.4" y="265.0" width="2.2" height="19.0"/><rect class="chart__vol" x="363.6" y="268.7" width="2.2" height="15.3"/><rect class="chart__vol" x="366.8" y="272.2" width="2.2" height="11.8"/><rect class="chart__vol" x="369.9" y="272.3" width="2.2" height="11.7"/><rect class="chart__vol" x="373.1" y="261.9" width="2.2" height="22.1"/><rect class="chart__vol" x="376.3" y="263.8" width="2.2" height="20.2"/><rect class="chart__vol" x="379.5" y="265.0" width="2.2" height="19.0"/><rect class="chart__vol" x="382.7" y="258.7" width="2.2" height="25.3"/><rect class="chart__vol" x="385.9" y="271.2" width="2.2" height="12.8"/><rect class="chart__vol" x="389.0" y="271.8" width="2.2" height="12.2"/><rect class="chart__vol" x="392.2" y="263.8" width="2.2" height="20.2"/><rect class="chart__vol" x="395.4" y="267.8" width="2.2" height="16.2"/><rect class="chart__vol" x="398.6" y="266.8" width="2.2" height="17.2"/><rect class="chart__vol" x="401.8" y="256.4" width="2.2" height="27.6"/><rect class="chart__vol" x="405.0" y="266.6" width="2.2" height="17.4"/><rect class="chart__vol" x="408.2" y="270.8" width="2.2" height="13.2"/><rect class="chart__vol" x="411.3" y="265.0" width="2.2" height="19.0"/><rect class="chart__vol" x="414.5" y="263.9" width="2.2" height="20.1"/><rect class="chart__vol" x="417.7" y="273.4" width="2.2" height="10.6"/><rect class="chart__vol" x="420.9" y="260.9" width="2.2" height="23.1"/><rect class="chart__vol" x="424.1" y="265.3" width="2.2" height="18.7"/><rect class="chart__vol" x="427.3" y="268.1" width="2.2" height="15.9"/><rect class="chart__vol" x="430.4" y="270.3" width="2.2" height="13.7"/><rect class="chart__vol" x="433.6" y="271.2" width="2.2" height="12.8"/><rect class="chart__vol" x="436.8" y="265.7" width="2.2" height="18.3"/><rect class="chart__vol" x="440.0" y="264.5" width="2.2" height="19.5"/><rect class="chart__vol" x="443.2" y="267.8" width="2.2" height="16.2"/><rect class="chart__vol" x="446.4" y="267.1" width="2.2" height="16.9"/><rect class="chart__vol" x="449.6" y="269.2" width="2.2" height="14.8"/><rect class="chart__vol" x="452.7" y="270.2" width="2.2" height="13.8"/><rect class="chart__vol" x="455.9" y="262.8" width="2.2" height="21.2"/><rect class="chart__vol" x="459.1" y="248.1" width="2.2" height="35.9"/><rect class="chart__vol" x="462.3" y="268.5" width="2.2" height="15.5"/><rect class="chart__vol" x="465.5" y="263.8" width="2.2" height="20.2"/><rect class="chart__vol" x="468.7" y="253.5" width="2.2" height="30.5"/><rect class="chart__vol" x="471.8" y="270.0" width="2.2" height="14.0"/><rect class="chart__vol" x="475.0" y="268.5" width="2.2" height="15.5"/><rect class="chart__vol" x="478.2" y="271.1" width="2.2" height="12.9"/><rect class="chart__vol" x="481.4" y="260.9" width="2.2" height="23.1"/><rect class="chart__vol" x="484.6" y="269.0" width="2.2" height="15.0"/><rect class="chart__vol" x="487.8" y="266.7" width="2.2" height="17.3"/><rect class="chart__vol" x="491.0" y="274.4" width="2.2" height="9.6"/><rect class="chart__vol" x="494.1" y="268.1" width="2.2" height="15.9"/><rect class="chart__vol" x="497.3" y="250.5" width="2.2" height="33.5"/><rect class="chart__vol" x="500.5" y="261.7" width="2.2" height="22.3"/><rect class="chart__vol" x="503.7" y="264.6" width="2.2" height="19.4"/><rect class="chart__vol" x="506.9" y="262.3" width="2.2" height="21.7"/><rect class="chart__vol" x="510.1" y="260.8" width="2.2" height="23.2"/><rect class="chart__vol" x="513.2" y="246.1" width="2.2" height="37.9"/><rect class="chart__vol" x="516.4" y="257.2" width="2.2" height="26.8"/><rect class="chart__vol" x="519.6" y="254.0" width="2.2" height="30.0"/><rect class="chart__vol" x="522.8" y="255.9" width="2.2" height="28.1"/><rect class="chart__vol" x="526.0" y="269.2" width="2.2" height="14.8"/><rect class="chart__vol" x="529.2" y="256.1" width="2.2" height="27.9"/><rect class="chart__vol" x="532.4" y="269.0" width="2.2" height="15.0"/><rect class="chart__vol" x="535.5" y="262.3" width="2.2" height="21.7"/><rect class="chart__vol" x="538.7" y="259.7" width="2.2" height="24.3"/><rect class="chart__vol" x="541.9" y="260.5" width="2.2" height="23.5"/><rect class="chart__vol" x="545.1" y="254.6" width="2.2" height="29.4"/><rect class="chart__vol" x="548.3" y="260.3" width="2.2" height="23.7"/><rect class="chart__vol" x="551.5" y="273.2" width="2.2" height="10.8"/><rect class="chart__vol" x="554.6" y="267.3" width="2.2" height="16.7"/><rect class="chart__vol" x="557.8" y="263.1" width="2.2" height="20.9"/><rect class="chart__vol" x="561.0" y="258.4" width="2.2" height="25.6"/><rect class="chart__vol" x="564.2" y="264.2" width="2.2" height="19.8"/><rect class="chart__vol" x="567.4" y="268.3" width="2.2" height="15.7"/><rect class="chart__vol" x="570.6" y="266.5" width="2.2" height="17.5"/><rect class="chart__vol" x="573.8" y="266.1" width="2.2" height="17.9"/><rect class="chart__vol" x="576.9" y="272.6" width="2.2" height="11.4"/><rect class="chart__vol" x="580.1" y="267.0" width="2.2" height="17.0"/><rect class="chart__vol" x="583.3" y="261.9" width="2.2" height="22.1"/><rect class="chart__vol" x="586.5" y="270.1" width="2.2" height="13.9"/><rect class="chart__vol" x="589.7" y="261.4" width="2.2" height="22.6"/><rect class="chart__vol" x="592.9" y="258.6" width="2.2" height="25.4"/><rect class="chart__vol" x="596.0" y="268.8" width="2.2" height="15.2"/><rect class="chart__vol" x="599.2" y="263.8" width="2.2" height="20.2"/><rect class="chart__vol" x="602.4" y="272.1" width="2.2" height="11.9"/><rect class="chart__vol" x="605.6" y="265.2" width="2.2" height="18.8"/><rect class="chart__vol" x="608.8" y="251.3" width="2.2" height="32.7"/><rect class="chart__vol" x="612.0" y="261.6" width="2.2" height="22.4"/><rect class="chart__vol" x="615.2" y="265.8" width="2.2" height="18.2"/><rect class="chart__vol" x="618.3" y="270.5" width="2.2" height="13.5"/><rect class="chart__vol" x="621.5" y="267.7" width="2.2" height="16.3"/><rect class="chart__vol" x="624.7" y="268.2" width="2.2" height="15.8"/><rect class="chart__vol" x="627.9" y="270.4" width="2.2" height="13.6"/><rect class="chart__vol" x="631.1" y="263.3" width="2.2" height="20.7"/><rect class="chart__vol" x="634.3" y="266.2" width="2.2" height="17.8"/><rect class="chart__vol" x="637.4" y="270.2" width="2.2" height="13.8"/><rect class="chart__vol" x="640.6" y="271.0" width="2.2" height="13.0"/><rect class="chart__vol" x="643.8" y="267.7" width="2.2" height="16.3"/><rect class="chart__vol" x="647.0" y="259.1" width="2.2" height="24.9"/><rect class="chart__vol" x="650.2" y="267.0" width="2.2" height="17.0"/><rect class="chart__vol" x="653.4" y="271.1" width="2.2" height="12.9"/><rect class="chart__vol" x="656.6" y="272.2" width="2.2" height="11.8"/><rect class="chart__vol" x="659.7" y="267.4" width="2.2" height="16.6"/><rect class="chart__vol" x="662.9" y="268.0" width="2.2" height="16.0"/><rect class="chart__vol" x="666.1" y="268.1" width="2.2" height="15.9"/><rect class="chart__vol" x="669.3" y="270.6" width="2.2" height="13.4"/><rect class="chart__vol" x="672.5" y="269.8" width="2.2" height="14.2"/><rect class="chart__vol" x="675.7" y="268.3" width="2.2" height="15.7"/><rect class="chart__vol" x="678.8" y="266.8" width="2.2" height="17.2"/><rect class="chart__vol" x="682.0" y="268.8" width="2.2" height="15.2"/><rect class="chart__vol" x="685.2" y="264.8" width="2.2" height="19.2"/><rect class="chart__vol" x="688.4" y="266.3" width="2.2" height="17.7"/><rect class="chart__vol" x="691.6" y="264.2" width="2.2" height="19.8"/><rect class="chart__vol" x="694.8" y="270.2" width="2.2" height="13.8"/><rect class="chart__vol" x="698.0" y="270.7" width="2.2" height="13.3"/><rect class="chart__vol" x="701.1" y="267.9" width="2.2" height="16.1"/><rect class="chart__vol" x="704.3" y="262.8" width="2.2" height="21.2"/><rect class="chart__vol" x="707.5" y="268.5" width="2.2" height="15.5"/><rect class="chart__vol" x="710.7" y="271.0" width="2.2" height="13.0"/><rect class="chart__vol" x="713.9" y="269.5" width="2.2" height="14.5"/><rect class="chart__vol" x="717.1" y="274.8" width="2.2" height="9.2"/><rect class="chart__vol" x="720.2" y="273.3" width="2.2" height="10.7"/><rect class="chart__vol" x="723.4" y="260.9" width="2.2" height="23.1"/><rect class="chart__vol" x="726.6" y="268.7" width="2.2" height="15.3"/><rect class="chart__vol" x="729.8" y="259.5" width="2.2" height="24.5"/><rect class="chart__vol" x="733.0" y="261.7" width="2.2" height="22.3"/><rect class="chart__vol" x="736.2" y="261.7" width="2.2" height="22.3"/><rect class="chart__vol" x="739.4" y="269.6" width="2.2" height="14.4"/><rect class="chart__vol" x="742.5" y="270.5" width="2.2" height="13.5"/><rect class="chart__vol" x="745.7" y="264.9" width="2.2" height="19.1"/><rect class="chart__vol" x="748.9" y="251.5" width="2.2" height="32.5"/><rect class="chart__vol" x="752.1" y="251.0" width="2.2" height="33.0"/><rect class="chart__vol" x="755.3" y="254.9" width="2.2" height="29.1"/><rect class="chart__vol" x="758.5" y="258.4" width="2.2" height="25.6"/><rect class="chart__vol" x="761.6" y="264.8" width="2.2" height="19.2"/><rect class="chart__vol" x="764.8" y="245.7" width="2.2" height="38.3"/><rect class="chart__vol" x="768.0" y="255.8" width="2.2" height="28.2"/><rect class="chart__vol" x="771.2" y="258.8" width="2.2" height="25.2"/><rect class="chart__vol" x="774.4" y="243.3" width="2.2" height="40.7"/><rect class="chart__vol" x="777.6" y="255.1" width="2.2" height="28.9"/><rect class="chart__vol" x="780.8" y="255.0" width="2.2" height="29.0"/><rect class="chart__vol" x="783.9" y="260.9" width="2.2" height="23.1"/><rect class="chart__vol" x="787.1" y="259.6" width="2.2" height="24.4"/><rect class="chart__vol" x="790.3" y="253.5" width="2.2" height="30.5"/><rect class="chart__vol" x="793.5" y="256.4" width="2.2" height="27.6"/><rect class="chart__vol" x="796.7" y="256.0" width="2.2" height="28.0"/><rect class="chart__vol" x="799.9" y="267.3" width="2.2" height="16.7"/><rect class="chart__vol" x="803.0" y="264.1" width="2.2" height="19.9"/><rect class="chart__vol" x="806.2" y="263.2" width="2.2" height="20.8"/><rect class="chart__vol" x="809.4" y="262.7" width="2.2" height="21.3"/><rect class="chart__vol" x="812.6" y="264.7" width="2.2" height="19.3"/><rect class="chart__vol" x="815.8" y="269.0" width="2.2" height="15.0"/><rect class="chart__vol" x="819.0" y="260.5" width="2.2" height="23.5"/><rect class="chart__vol" x="822.2" y="269.3" width="2.2" height="14.7"/><rect class="chart__vol" x="825.3" y="270.5" width="2.2" height="13.5"/><rect class="chart__vol" x="828.5" y="271.8" width="2.2" height="12.2"/><rect class="chart__vol" x="831.7" y="257.2" width="2.2" height="26.8"/><rect class="chart__vol" x="834.9" y="270.7" width="2.2" height="13.3"/>
+  <text class="chart__axis" x="8.0" y="296" text-anchor="start">2021-09</text><text class="chart__axis" x="422.0" y="296" text-anchor="middle">2024-03</text><text class="chart__axis" x="836.0" y="296" text-anchor="end">2026-09</text>
+  <g class="chart__legend" transform="translate(12, 20)"><text x="0" y="0">Close</text><text x="46" y="0" class="chart__key50">50 day</text><text x="104" y="0" class="chart__key200">200 day</text></g>
+</svg></div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Why this conclusion</h2></div>
+    <ol class="list-clean">
+<li>Cash generation runs well ahead of reported profit.</li>    </ol>
+    <div class="note" style="margin-top: 1.5rem;">
+      <h4>The strongest argument against this view</h4>
+      <p>Terminal value carries most of the cash flow valuation.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Scorecard</h2>
+      <p>Raw scores are analyst judgement. Weighted contribution is raw divided by ten, times the weight.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Category</th><th>Raw</th><th>Weight</th><th>Contribution</th><th style="text-align:left">Basis</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Quality</td>
+            <td>7 / 10</td>
+            <td>20</td>
+            <td>14.0</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">Return on capital steady near 11 percent with cash conversion above twice reported profit.</td>
+          </tr>
+          <tr>
+            <td>Growth</td>
+            <td>6 / 10</td>
+            <td>20</td>
+            <td>12.0</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">—</td>
+          </tr>
+          <tr>
+            <td>Earnings</td>
+            <td>7 / 10</td>
+            <td>15</td>
+            <td>10.5</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">—</td>
+          </tr>
+          <tr>
+            <td>Valuation</td>
+            <td>6 / 10</td>
+            <td>20</td>
+            <td>12.0</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">—</td>
+          </tr>
+          <tr>
+            <td>Competitive Moat</td>
+            <td>7 / 10</td>
+            <td>10</td>
+            <td>7.0</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">—</td>
+          </tr>
+          <tr>
+            <td>Catalysts</td>
+            <td>5 / 10</td>
+            <td>5</td>
+            <td>2.5</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">—</td>
+          </tr>
+          <tr>
+            <td>Risk</td>
+            <td>7 / 10</td>
+            <td>10</td>
+            <td>7.0</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">—</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr><td><b>Total</b></td><td></td><td>100</td><td><b>65.0</b></td><td></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Valuation</h2>
+      <p>A range, not a point. Every assumption is stated and is a model input rather than a reported fact.</p>
+    </div>
+
+    <div class="chartbox">
+      <p class="chartbox__title">Where the price sits inside the scenario range</p>
+      <svg class="chart" viewBox="0 0 900 150" preserveAspectRatio="none" role="img" aria-label="Scenario values against today's price">
+  <line class="chart__axisline" x1="60" y1="74" x2="840" y2="74"/><rect class="chart__range" x="135.5" y="67" width="629.0" height="14"/><line class="chart__tick" x1="269.1" y1="62" x2="269.1" y2="86"/><text class="chart__value" x="269.1" y="52" text-anchor="middle">₹1,058</text><text class="chart__axis" x="269.1" y="40" text-anchor="middle">Bear</text><line class="chart__tick" x1="516.8" y1="62" x2="516.8" y2="86"/><text class="chart__value" x="516.8" y="108" text-anchor="middle">₹1,411</text><text class="chart__axis" x="516.8" y="120" text-anchor="middle">Base</text><line class="chart__tick" x1="764.5" y1="62" x2="764.5" y2="86"/><text class="chart__value" x="764.5" y="52" text-anchor="middle">₹1,764</text><text class="chart__axis" x="764.5" y="40" text-anchor="middle">Bull</text><line class="chart__tick" x1="135.5" y1="62" x2="135.5" y2="86"/><text class="chart__value" x="135.5" y="108" text-anchor="middle">₹868</text><text class="chart__axis" x="135.5" y="120" text-anchor="middle">Discounted cash flow</text><line class="chart__now" x1="420.7" y1="48" x2="420.7" y2="100"/><text class="chart__nowlabel" x="420.7" y="134" text-anchor="middle">Price today ₹1,274</text>
+</svg>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <caption>Scenario values per share</caption>
+        <thead>
+          <tr><th>Scenario</th><th>Value</th><th>Against price</th><th>Probability</th><th style="text-align:left">Assumption</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bear</td>
+            <td>₹1,058</td>
+            <td class="neg">
+-16.9%            </td>
+            <td>not assigned</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">Earnings hold at the latest reported level and the multiple de-rates by a quarter.</td>
+          </tr>
+          <tr>
+            <td>Base</td>
+            <td>₹1,411</td>
+            <td class="pos">
++10.7%            </td>
+            <td>not assigned</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">Earnings hold and the shares revert to their own five-year median multiple.</td>
+          </tr>
+          <tr>
+            <td>Bull</td>
+            <td>₹1,764</td>
+            <td class="pos">
++38.4%            </td>
+            <td>not assigned</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">Earnings hold and the multiple re-rates by a quarter on improving execution.</td>
+          </tr>
+          <tr>
+            <td>Discounted cash flow</td>
+            <td>₹868</td>
+            <td class="neg">
+-31.9%            </td>
+            <td>not assigned</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">Five-year forecast with a Gordon terminal value at the stated cost of capital.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid grid--2" style="margin-top: 1.75rem;">
+      <div>
+        <dl class="kv">
+          <dt>Margin of safety</dt><dd>LOW</dd>
+          <dt>Price to earnings now</dt><dd>23.1</dd>
+          <dt>Its own five-year median</dt><dd>23.6</dd>
+          <dt>Premium to that median</dt><dd>-2.4%</dd>
+<dt>Free cash flow yield</dt><dd>4.0%</dd>        </dl>
+      </div>
+      <div>
+        <dl class="kv">
+          <dt>Cost of equity</dt><dd>11.3%</dd>
+          <dt>Cost of capital used</dt><dd>10.4%</dd>
+          <dt>Risk-free rate assumed</dt><dd>6.5%</dd>
+          <dt>Equity risk premium assumed</dt><dd>6.0%</dd>
+          <dt>Beta used</dt><dd>0.80</dd>
+          <dt>Terminal growth assumed</dt><dd>4.0%</dd>
+          <dt>Terminal share of value</dt><dd>76%</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="chartbox" style="margin-top:1.75rem">
+      <p class="chartbox__title">The valuation multiple against its own five-year median</p>
+      <svg class="chart" viewBox="0 0 900 200" preserveAspectRatio="none" role="img" aria-label="Price to earnings against its own median">
+  <rect class="chart__band" x="8" y="70.9" width="840.0" height="108.2"/><line class="chart__median" x1="8" y1="125.0" x2="848" y2="125.0"/><text class="chart__axis" x="854" y="128.5">23.6</text>
+  <path class="chart__line" d="M 8.0,152.7 L 288.0,45.3 L 568.0,114.3 L 848.0,135.7"/><circle class="chart__dot" cx="8.0" cy="152.7" r="3.5"><title>2023-03-31: 21.8x</title></circle><circle class="chart__dot" cx="288.0" cy="45.3" r="3.5"><title>2024-03-31: 28.9x</title></circle><circle class="chart__dot" cx="568.0" cy="114.3" r="3.5"><title>2025-03-31: 24.3x</title></circle><circle class="chart__dot" cx="848.0" cy="135.7" r="3.5"><title>2026-03-31: 22.9x</title></circle>
+  <text class="chart__axis" x="8.0" y="192" text-anchor="middle">2023</text><text class="chart__axis" x="288.0" y="192" text-anchor="middle">2024</text><text class="chart__axis" x="568.0" y="192" text-anchor="middle">2025</text><text class="chart__axis" x="848.0" y="192" text-anchor="middle">2026</text>
+  <g class="chart__legend" transform="translate(12, 14)"><text x="0" y="0">Price to earnings at each year end</text></g>
+</svg>
+    </div>
+
+    <div class="table-scroll" style="margin-top: 1.75rem;">
+      <table>
+        <caption>Value per share as the cost of capital and terminal growth each move by one point</caption>
+        <thead>
+          <tr>
+            <th>Cost of capital</th>
+<th>g = 3.0%</th><th>g = 4.0%</th><th>g = 5.0%</th>          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>9.4%</td>
+<td>₹903</td><td>₹1,065</td><td>₹1,300</td>          </tr>
+          <tr>
+            <td>10.4%</td>
+<td>₹754</td><td>₹867</td><td>₹1,023</td>          </tr>
+          <tr>
+            <td>11.4%</td>
+<td>₹640</td><td>₹724</td><td>₹833</td>          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="stack" style="margin-top: 1.5rem;">
+      <div class="note"><p>Terminal value is 76% of enterprise value, so the valuation rests mainly on assumptions beyond the forecast period.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Financial record</h2>
+      <p>Reported figures in crore. Source: Yahoo Finance, retrieved 10 September 2026.</p>
+    </div>
+    <div class="chartbox"><svg class="chart" viewBox="0 0 900 260" preserveAspectRatio="none" role="img" aria-label="Revenue and profit by year with operating margin">
+  <line class="chart__grid" x1="8" y1="230" x2="842" y2="230"/>
+  <rect class="chart__bar" x="76.2" y="60.6" width="34.0" height="169.4"><title>Revenue 8.8L cr</title></rect><rect class="chart__bar2" x="114.2" y="217.1" width="34.0" height="12.9"><title>Profit 66,702 cr</title></rect><text class="chart__axis" x="112.2" y="250" text-anchor="middle">2023</text><rect class="chart__bar" x="284.8" y="56.1" width="34.0" height="173.9"><title>Revenue 9.0L cr</title></rect><rect class="chart__bar2" x="322.8" y="216.6" width="34.0" height="13.4"><title>Profit 69,621 cr</title></rect><text class="chart__axis" x="320.8" y="250" text-anchor="middle">2024</text><rect class="chart__bar" x="493.2" y="43.9" width="34.0" height="186.1"><title>Revenue 9.6L cr</title></rect><rect class="chart__bar2" x="531.2" y="216.6" width="34.0" height="13.4"><title>Profit 69,648 cr</title></rect><text class="chart__axis" x="529.2" y="250" text-anchor="middle">2025</text><rect class="chart__bar" x="701.8" y="26.0" width="34.0" height="204.0"><title>Revenue 10.6L cr</title></rect><rect class="chart__bar2" x="739.8" y="214.4" width="34.0" height="15.6"><title>Profit 80,775 cr</title></rect><text class="chart__axis" x="737.8" y="250" text-anchor="middle">2026</text>
+  <path class="chart__marginline" d="M 112.2,188.0 L 320.8,68.0 L 529.2,114.7 L 737.8,82.1"/><circle class="chart__margindot" cx="112.2" cy="188.0" r="3"/><circle class="chart__margindot" cx="320.8" cy="68.0" r="3"/><circle class="chart__margindot" cx="529.2" cy="114.7" r="3"/><circle class="chart__margindot" cx="737.8" cy="82.1" r="3"/><text class="chart__axis" x="848" y="85.6">19%</text>
+  <g class="chart__legend" transform="translate(12, 14)"><text x="0" y="0">Revenue</text><text x="62" y="0" class="chart__key2">Profit</text><text x="112" y="0" class="chart__keymargin">Operating margin</text></g>
+</svg></div>
+    <div class="chartbox"><svg class="chart" viewBox="0 0 900 220" preserveAspectRatio="none" role="img" aria-label="Return ratios by year">
+  <line class="chart__grid" x1="8" y1="192.0" x2="848" y2="192.0"/>
+  <path class="chart__line" d="M 8.0,42.3 L 288.0,38.1 L 568.0,45.2 L 848.0,34.9"/><circle class="chart__linedot" cx="8.0" cy="42.3" r="3"/><circle class="chart__linedot" cx="288.0" cy="38.1" r="3"/><circle class="chart__linedot" cx="568.0" cy="45.2" r="3"/><circle class="chart__linedot" cx="848.0" cy="34.9" r="3"/>
+  <path class="chart__line50" d="M 8.0,64.9 L 288.0,72.3 L 568.0,79.3 L 848.0,70.1"/><circle class="chart__line50dot" cx="8.0" cy="64.9" r="3"/><circle class="chart__line50dot" cx="288.0" cy="72.3" r="3"/><circle class="chart__line50dot" cx="568.0" cy="79.3" r="3"/><circle class="chart__line50dot" cx="848.0" cy="70.1" r="3"/>
+  <text class="chart__axis" x="8.0" y="212" text-anchor="middle">2023</text><text class="chart__axis" x="288.0" y="212" text-anchor="middle">2024</text><text class="chart__axis" x="568.0" y="212" text-anchor="middle">2025</text><text class="chart__axis" x="848.0" y="212" text-anchor="middle">2026</text><text class="chart__axis" x="854" y="38.4">11.5%</text><text class="chart__axis" x="854" y="73.6">8.9%</text>
+  <g class="chart__legend" transform="translate(12, 14)"><text x="0" y="0">Return on capital</text><text x="122" y="0" class="chart__key50">Return on equity</text></g>
+</svg></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Year to</th><th>Revenue</th><th>EBITDA</th><th>Margin</th><th>Profit</th>
+            <th>Earnings per share</th><th>Operating cash</th><th>Cash to profit</th>
+            <th>Return on capital</th><th>Net debt</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2023-03-31</td>
+            <td>877,835</td>
+            <td>153,307</td>
+            <td>17.5%</td>
+            <td>66,702</td>
+            <td>49.30</td>
+            <td>115,032</td>
+            <td>1.72x</td>
+            <td>11.0%</td>
+            <td>279,810</td>
+          </tr>
+          <tr>
+            <td>2024-03-31</td>
+            <td>901,064</td>
+            <td>176,944</td>
+            <td>19.6%</td>
+            <td>69,621</td>
+            <td>51.45</td>
+            <td>158,788</td>
+            <td>2.28x</td>
+            <td>11.3%</td>
+            <td>231,082</td>
+          </tr>
+          <tr>
+            <td>2025-03-31</td>
+            <td>964,693</td>
+            <td>181,274</td>
+            <td>18.8%</td>
+            <td>69,648</td>
+            <td>51.47</td>
+            <td>178,703</td>
+            <td>2.57x</td>
+            <td>10.8%</td>
+            <td>246,885</td>
+          </tr>
+          <tr>
+            <td>2026-03-31</td>
+            <td>1,057,219</td>
+            <td>204,906</td>
+            <td>19.4%</td>
+            <td>80,775</td>
+            <td>59.69</td>
+            <td>192,113</td>
+            <td>2.38x</td>
+            <td>11.5%</td>
+            <td>237,094</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <dl class="kv" style="margin-top: 1.25rem; max-width: 34rem;">
+      <dt>Revenue compound growth</dt><dd>6.4%</dd>
+      <dt>Profit compound growth</dt><dd>6.6%</dd>
+      <dt>Operating cash compound growth</dt><dd>18.6%</dd>
+      <dt>Operating margin trend</dt><dd>rising with volatility</dd>
+    </dl>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Recent quarters</h2></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Quarter to</th><th>Revenue</th><th>Year on year</th><th>Quarter on quarter</th><th>Margin</th><th>Profit</th><th>Profit year on year</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2025-09-30</td>
+            <td>—</td>
+            <td class="">—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="">—</td>
+          </tr>
+          <tr>
+            <td>2025-03-31</td>
+            <td>261,388</td>
+            <td class="">—</td>
+            <td>—</td>
+            <td>13.5%</td>
+            <td>19,407</td>
+            <td class="">—</td>
+          </tr>
+          <tr>
+            <td>2025-06-30</td>
+            <td>243,632</td>
+            <td class="">—</td>
+            <td>-6.8%</td>
+            <td>18.1%</td>
+            <td>26,994</td>
+            <td class="">—</td>
+          </tr>
+          <tr>
+            <td>2025-12-31</td>
+            <td>264,905</td>
+            <td class="">—</td>
+            <td>+8.7%</td>
+            <td>13.7%</td>
+            <td>18,645</td>
+            <td class="">—</td>
+          </tr>
+          <tr>
+            <td>2026-03-31</td>
+            <td>294,059</td>
+            <td class="pos">+12.5%</td>
+            <td>+11.0%</td>
+            <td>11.5%</td>
+            <td>16,971</td>
+            <td class="neg">-12.6%</td>
+          </tr>
+          <tr>
+            <td>2026-06-30</td>
+            <td>309,468</td>
+            <td class="pos">+27.0%</td>
+            <td>+5.2%</td>
+            <td>12.6%</td>
+            <td>20,946</td>
+            <td class="neg">-22.4%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Financial quality</h2>
+      <p>Observations, not accusations. A ratio alone never establishes wrongdoing.</p>
+    </div>
+    <dl class="kv" style="max-width: 34rem;">
+      <dt>Red-flag score</dt><dd>1 — low concern</dd>
+      <dt>Cumulative cash conversion</dt><dd>2.25x</dd>
+      <dt>Balance-sheet strength</dt><dd>6.5 / 10</dd>
+    </dl>
+    <div class="stack" style="margin-top: 1.5rem;">
+      <div class="note">
+        <h4>Exceptional items recur</h4>
+        <p>Unusual or exceptional items appear in 4 of 4 years. <span class="dim">Items that recur every year are arguably operating in nature.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Technical setup</h2>
+      <p>Kept outside the hundred-point score. It answers when the risk and reward might be better, not whether the asset is worth owning.</p>
+    </div>
+    <dl class="kv" style="max-width: 34rem;">
+      <dt>Technical score</dt><dd>1.0 / 10</dd>
+      <dt>Trend</dt><dd>downtrend</dd>
+      <dt>Relative strength index</dt><dd>41.1</dd>
+      <dt>200 day average</dt><dd>₹1,384</dd>
+      <dt>Support</dt><dd>₹1,266  ₹1,250</dd>
+      <dt>Resistance</dt><dd>₹1,333  ₹1,346  ₹1,473</dd>
+    </dl>
+    <div class="rubric" style="margin-top: 1.5rem; max-width: 46rem;">
+      <div class="rubric__row">
+        <span>Price above the 200 day average</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: 0.0%; display:block;"></span></span>
+        <span class="num">0.0 / 1.5</span>
+        <span class="rubric__detail small">Price 1,274.00 against 200 DMA 1,384.27</span>
+      </div>
+      <div class="rubric__row">
+        <span>50 day average above the 200 day</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: 0.0%; display:block;"></span></span>
+        <span class="num">0.0 / 1.5</span>
+        <span class="rubric__detail small">50 DMA 1,302.13 against 200 DMA 1,384.27</span>
+      </div>
+      <div class="rubric__row">
+        <span>Price above the 50 day average</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: 0.0%; display:block;"></span></span>
+        <span class="num">0.0 / 1.0</span>
+        <span class="rubric__detail small">Price 1,274.00 against 50 DMA 1,302.13</span>
+      </div>
+      <div class="rubric__row">
+        <span>MACD above its signal line</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: 0.0%; display:block;"></span></span>
+        <span class="num">0.0 / 1.0</span>
+        <span class="rubric__detail small">MACD -4.73 against signal -1.78</span>
+      </div>
+      <div class="rubric__row">
+        <span>RSI in a constructive band</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: 50.0%; display:block;"></span></span>
+        <span class="num">0.75 / 1.5</span>
+        <span class="rubric__detail small">RSI 41.1 is at the edge of the constructive band</span>
+      </div>
+      <div class="rubric__row">
+        <span>Outperforming the Nifty over six months</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: 0.0%; display:block;"></span></span>
+        <span class="num">0.0 / 1.5</span>
+        <span class="rubric__detail small">Six month relative return -4.5%</span>
+      </div>
+      <div class="rubric__row">
+        <span>Volume confirming the move</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: 0.0%; display:block;"></span></span>
+        <span class="num">0.0 / 1.0</span>
+        <span class="rubric__detail small">Latest volume is 0.86x the 20 day average</span>
+      </div>
+      <div class="rubric__row">
+        <span>Upper half of the 52 week range</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: 0.0%; display:block;"></span></span>
+        <span class="num">0.0 / 1.0</span>
+        <span class="rubric__detail small">Sits at 5% of the 52 week range</span>
+      </div>
+    </div>
+  </section>
+
+
+  <section>
+    <div class="section-head">
+      <h2>Data notes and assumptions</h2>
+      <p>What the free data source could and could not supply, and which numbers are model inputs.</p>
+    </div>
+    <ul class="list-clean small">
+<li>Only 6 quarters available from the free source; framework 05 asks for eight.</li><li>Quarterly cash flow is not published by the free source. Quarterly cash conversion must be entered manually or assessed annually.</li>    </ul>
+    <dl class="kv" style="max-width: 34rem; margin-top: 1.25rem;">
+      <dt>Risk-free rate</dt><dd>6.5%</dd>
+      <dt>Equity risk premium</dt><dd>6.0%</dd>
+      <dt>Terminal growth</dt><dd>4.0%</dd>
+      <dt>Margin of safety, high above</dt><dd>25% discount</dd>
+      <dt>Margin of safety, moderate above</dt><dd>10% discount</dd>
+    </dl>
+    <p class="small dim" style="max-width: 62ch;">These are model assumptions, not published figures. Review each one before relying on the valuation.</p>
+  </section>
+
+</main>
+
+<footer class="colophon shell">
+  <div class="colophon__credit">
+    <h3>Framework designed by Nagaraj Balasubramaniam</h3>
+    <p class="creds">
+Alumnus, IIM Lucknow<br>Certified Economic Journalist<br>NISM Certified | NCFM Certified<br>AMFI Registered Mutual Fund &amp; SIF Distributor — ARN: 309850<br>APMI Registered PMS Distributor — APRN Code: APRN07791<br>Registered AP — Code: AP2513037631<br>NSE Academy Certified Market Professional (NCMP)<br>    </p>
+    <p>
+      Author of
+A Common Man&#39;s Voyage in the Stock Market; The Behavioral Investor; Mastering Options Trading.
+    </p>
+  </div>
+  <div class="colophon__disclaimer">
+    <p><strong>Disclaimer as per SEBI norms: Equity investments are subject to 100% market risks. Refer to your financial consultant&#39;s advice before investing.</strong></p>
+    <p>This group/channel/project is intended only for educational, learning and knowledge purposes.</p>
+    <p>Admins have no responsibility for any intended decision or financial losses.</p>
+    <p>Always assess your cash position, financial circumstances and risk-bearing capacity before acting on any information or analysis.</p>
+    <p>We do not provide any buy, sell, or hold recommendations, either directly or indirectly.</p>
+    <p>This channel does not offer stock tips, trading signals, or personalized investment advice.</p>
+    <p>The research output is provided for educational and analytical purposes only and should not be interpreted as personalized investment advice, a solicitation to buy or sell securities, or a guarantee of future returns.</p>
+    <p>Users should conduct their own due diligence and, where appropriate, consult a qualified financial professional before making investment decisions.</p>
+  </div>
+</footer>
+
+<script>
+  // One orchestrated moment: the columns rise once, on load.
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.column__fill').forEach(function (el) {
+      var target = el.style.height;
+      el.style.height = '0%';
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { el.style.height = target; });
+      });
+    });
+  }
+</script>
+</body>
+</html>
