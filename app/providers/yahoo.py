@@ -238,6 +238,50 @@ def search(query: str, limit: int = 8) -> list[dict[str, str]]:
     return ordered[:limit]
 
 
+def diagnose(symbol: str = "RELIANCE.NS") -> dict[str, Any]:
+    """Report which parts of the data source this machine can actually reach.
+
+    Search, prices and fundamentals sit behind different endpoints with different
+    authentication. A hosted server is routinely allowed the first two and refused
+    the third, and without this the symptom is a vague failure.
+    """
+    results: dict[str, Any] = {"symbol": symbol}
+
+    matches = search("reliance")
+    results["search"] = {"ok": bool(matches), "matches": len(matches), "error": LAST_SEARCH_ERROR}
+
+    t = yf.Ticker(symbol)
+
+    try:
+        history = t.history(period="1mo")
+        results["prices"] = {"ok": not history.empty, "rows": int(len(history))}
+    except Exception as exc:  # noqa: BLE001
+        results["prices"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
+    try:
+        info = t.info or {}
+        results["profile"] = {"ok": bool(info.get("longName")), "name": info.get("longName")}
+    except Exception as exc:  # noqa: BLE001
+        results["profile"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
+    try:
+        statements = t.income_stmt
+        ok = statements is not None and not statements.empty
+        results["statements"] = {"ok": ok, "periods": int(statements.shape[1]) if ok else 0}
+    except Exception as exc:  # noqa: BLE001
+        results["statements"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+
+    results["can_analyse"] = bool(results["statements"].get("ok"))
+    results["verdict"] = (
+        "This machine can analyse companies."
+        if results["can_analyse"]
+        else "This machine cannot analyse companies. The data source is refusing its "
+        "authenticated endpoints, which hosted servers are commonly denied. Search and "
+        "prices may still work. Run the terminal locally instead."
+    )
+    return results
+
+
 def _title_case(name: str) -> str:
     """Yahoo shouts Indian company names. Make them readable without mangling initialisms."""
     keep_upper = {"NSE", "BSE", "IT", "IDFC", "HDFC", "ICICI", "SBI", "TCS", "ITC", "L&T",
@@ -340,13 +384,19 @@ def fetch(ticker: str, years: int = 5, quarters: int = 8, name_hint: str | None 
     if price is None and not history.empty:
         price = float(history["Close"].iloc[-1])
 
-    # A report needs something to analyse. Statements or prices will do; the
-    # profile is a convenience. Only when all of it is missing is there no company.
-    if not annual and history.empty:
+    # A report without financial statements is not a report. Price history alone
+    # would produce an empty scorecard dressed up as analysis.
+    if not annual:
+        if history.empty:
+            raise NoDataAvailable(
+                f"Nothing came back for {symbol}, neither statements nor prices. "
+                "Check the symbol as listed on the exchange."
+            )
         raise NoDataAvailable(
-            f"No financial statements and no price history came back for {symbol}. "
-            "Either the symbol is wrong, or the data source is refusing requests from "
-            "this machine."
+            f"Price history for {symbol} arrived but the financial statements did not. "
+            "The data source is refusing its authenticated endpoints from this machine, "
+            "which it commonly does from hosted servers. Run the terminal locally to "
+            "analyse this company."
         )
 
     name = info.get("longName") or info.get("shortName") or name_hint
