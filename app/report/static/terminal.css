@@ -33,12 +33,12 @@
   --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   --serif: "Spectral", Georgia, "Times New Roman", serif;
 
-  --step-0: 0.9375rem;
-  --step-1: 1.125rem;
-  --step-2: 1.5rem;
-  --step-3: 2.125rem;
-  --step-4: 3rem;
-  --micro: 0.75rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.3125rem;
+  --step-2: 1.75rem;
+  --step-3: 2.5rem;
+  --step-4: 3.5rem;
+  --micro: 0.875rem;
 
   --gutter: clamp(1rem, 4vw, 3.5rem);
   --measure: 68ch;
@@ -52,7 +52,7 @@ body {
   margin: 0;
   font-family: var(--sans);
   font-size: var(--step-0);
-  line-height: 1.55;
+  line-height: 1.6;
   font-feature-settings: "tnum" 1;
 }
 
@@ -104,11 +104,11 @@ section:last-of-type { border-bottom: 0; }
 
 .section-head { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
 .section-head h2 { font-family: var(--serif); font-size: var(--step-2); letter-spacing: -0.015em; }
-.section-head p { margin: 0; color: var(--fg-dim); font-size: var(--micro); max-width: 46ch; }
+.section-head p { margin: 0; color: var(--fg-dim); font-size: 0.9375rem; max-width: 48ch; }
 
 .prose { max-width: var(--measure); }
 .prose p { margin: 0 0 0.9em; }
-.paper .prose { font-family: var(--serif); font-size: 1.0625rem; line-height: 1.65; }
+.paper .prose { font-family: var(--serif); font-size: 1.1875rem; line-height: 1.7; }
 
 .grid { display: grid; gap: clamp(1rem, 2.5vw, 2rem); }
 .grid--2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
@@ -150,7 +150,7 @@ section:last-of-type { border-bottom: 0; }
 .column__fill--strong { background: var(--verdigris); }
 .column__fill--weak   { background: var(--brick); }
 
-.column__caption { margin-top: 0.5rem; font-size: 0.6875rem; color: var(--fg-dim); line-height: 1.25; }
+.column__caption { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--fg-dim); line-height: 1.25; }
 .column__caption b { display: block; color: var(--fg); font-family: var(--mono); font-weight: 500; }
 .captions { display: flex; gap: 3px; }
 
@@ -168,9 +168,9 @@ section:last-of-type { border-bottom: 0; }
 
 /* ------------------------------------------------------------------ tables */
 
-table { width: 100%; border-collapse: collapse; font-size: var(--micro); }
+table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
 caption { text-align: left; color: var(--fg-dim); font-size: var(--micro); padding-bottom: 0.5rem; }
-th, td { padding: 0.45rem 0.6rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th, td { padding: 0.55rem 0.7rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
 th:first-child, td:first-child { text-align: left; }
 thead th { color: var(--fg-dim); font-weight: 500; border-bottom-width: 1px; }
 tbody td { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); }
@@ -184,7 +184,7 @@ tbody tr:hover td { background: color-mix(in srgb, var(--line) 22%, transparent)
 /* ------------------------------------------------------------------ charts */
 
 .chartbox { margin-block: 1.25rem; }
-.chartbox__title { font-size: var(--micro); color: var(--fg-dim); margin: 0 0 0.5rem; }
+.chartbox__title { font-size: 0.9375rem; color: var(--fg-dim); margin: 0 0 0.5rem; }
 .chart { width: 100%; height: auto; display: block; overflow: visible; }
 
 .chart__line     { fill: none; stroke: var(--marigold); stroke-width: 1.8; stroke-linejoin: round; }
@@ -209,13 +209,13 @@ tbody tr:hover td { background: color-mix(in srgb, var(--line) 22%, transparent)
 .chart__range    { fill: color-mix(in srgb, var(--marigold) 26%, transparent); }
 .chart__tick     { stroke: var(--fg-dim); stroke-width: 1.4; }
 .chart__now      { stroke: var(--brick); stroke-width: 2; }
-.chart__nowlabel { fill: var(--brick); font-family: var(--mono); font-size: 11px; }
-.chart__value    { fill: var(--fg-hi); font-family: var(--mono); font-size: 12px; }
+.chart__nowlabel { fill: var(--brick); font-family: var(--mono); font-size: 13px; }
+.chart__value    { fill: var(--fg-hi); font-family: var(--mono); font-size: 14px; }
 
-.chart__axis     { fill: var(--fg-dim); font-family: var(--mono); font-size: 10px; }
-.chart__last     { fill: var(--marigold); font-family: var(--mono); font-size: 11px; }
-.chart__empty    { fill: var(--fg-dim); font-family: var(--sans); font-size: 12px; }
-.chart__legend text { fill: var(--fg-dim); font-family: var(--sans); font-size: 10.5px; }
+.chart__axis     { fill: var(--fg-dim); font-family: var(--mono); font-size: 12px; }
+.chart__last     { fill: var(--marigold); font-family: var(--mono); font-size: 13px; }
+.chart__empty    { fill: var(--fg-dim); font-family: var(--sans); font-size: 14px; }
+.chart__legend text { fill: var(--fg-dim); font-family: var(--sans); font-size: 12.5px; }
 .chart__legend .chart__key50  { fill: var(--verdigris); }
 .chart__legend .chart__key200 { fill: var(--fg-dim); }
 .chart__legend .chart__key2   { fill: var(--verdigris); }
@@ -239,11 +239,11 @@ tbody tr:hover td { background: color-mix(in srgb, var(--line) 22%, transparent)
 .note--negative { border-left-color: var(--brick); }
 .note--positive { border-left-color: var(--verdigris); }
 .note h4 { font-size: var(--step-0); margin-bottom: 0.25rem; }
-.note p { margin: 0; font-size: var(--micro); color: var(--fg); }
+.note p { margin: 0; font-size: 0.9375rem; color: var(--fg); line-height: 1.6; }
 
 .stack { display: flex; flex-direction: column; gap: 0.75rem; }
 
-.kv { display: grid; grid-template-columns: 1fr auto; gap: 0.35rem 1rem; font-size: var(--micro); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 0.45rem 1rem; font-size: 0.9375rem; }
 .kv dt { color: var(--fg-dim); }
 .kv dd { margin: 0; font-family: var(--mono); color: var(--fg-hi); text-align: right; }
 
@@ -252,7 +252,7 @@ tbody tr:hover td { background: color-mix(in srgb, var(--line) 22%, transparent)
 
 /* ----------------------------------------------------------- rubric / bars */
 
-.rubric { display: grid; gap: 0.4rem; font-size: var(--micro); }
+.rubric { display: grid; gap: 0.5rem; font-size: 0.9375rem; }
 .rubric__row { display: grid; grid-template-columns: 1fr auto 5rem; gap: 0.75rem; align-items: center; }
 .rubric__track { height: 4px; background: color-mix(in srgb, var(--line) 55%, transparent); border-radius: 2px; }
 .rubric__fill { height: 100%; background: var(--marigold); border-radius: 2px; }
@@ -263,9 +263,9 @@ tbody tr:hover td { background: color-mix(in srgb, var(--line) 22%, transparent)
 .colophon { padding-block: 2.5rem 3.5rem; border-top: 2px solid var(--line); }
 .colophon__credit { max-width: var(--measure); }
 .colophon__credit h3 { font-family: var(--serif); font-size: var(--step-1); margin-bottom: 0.5rem; }
-.colophon__credit p { margin: 0 0 0.6em; font-size: var(--micro); color: var(--fg-dim); line-height: 1.6; }
+.colophon__credit p { margin: 0 0 0.6em; font-size: 0.9375rem; color: var(--fg-dim); line-height: 1.65; }
 .colophon__credit .creds { font-family: var(--mono); color: var(--fg); }
-.colophon__disclaimer { margin-top: 1.75rem; max-width: var(--measure); font-size: var(--micro); color: var(--fg-dim); line-height: 1.6; }
+.colophon__disclaimer { margin-top: 1.75rem; max-width: var(--measure); font-size: 0.9375rem; color: var(--fg-dim); line-height: 1.7; }
 .colophon__disclaimer strong { color: var(--fg); }
 
 .banner {

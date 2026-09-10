@@ -36,6 +36,20 @@ def startup() -> None:
     db.init()
 
 
+@app.middleware("http")
+async def no_cache(request, call_next):
+    """Never let the browser cache the workbench.
+
+    This is a local tool that is edited while it runs. A stale stylesheet or
+    script cached from a previous version is confusing in a way that no amount
+    of cache-busting query strings reliably fixes.
+    """
+    response = await call_next(request)
+    if not request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store, must-revalidate"
+    return response
+
+
 @app.get("/")
 def workbench() -> FileResponse:
     return FileResponse(WEB / "index.html")
