@@ -6,6 +6,7 @@ network and needs no authentication.
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException
@@ -205,6 +206,14 @@ def refresh_report(report_id: int) -> dict[str, Any]:
 
 @router.post("/reports/{report_id}/publish")
 def publish_report(report_id: int) -> dict[str, Any]:
+    # Hiding the button is not enough on an instance anyone can reach. Publishing
+    # here would write a page inside the container that GitHub Pages never sees,
+    # and mark the report published when nothing was published.
+    if os.environ.get("PORT"):
+        raise HTTPException(
+            status_code=409,
+            detail="Publishing happens from the machine that has git access, not from the hosted copy.",
+        )
     try:
         record = publisher.publish(report_id)
     except publisher.NotPublishable as exc:

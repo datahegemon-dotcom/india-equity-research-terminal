@@ -12,6 +12,7 @@ const state = {
   decision: null,
   saveTimer: null,
   saving: false,
+  hosted: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -171,9 +172,11 @@ function renderHead() {
       <div class="actions">
         <button class="quiet" id="btn-refresh">Refresh data</button>
         <button class="quiet" id="btn-preview">Preview page</button>
-        ${r.status === 'published'
-          ? '<button class="quiet" id="btn-unpublish">Unpublish</button>'
-          : `<button class="primary" id="btn-publish" ${d.publishable ? '' : 'disabled'}>Publish</button>`}
+        ${state.hosted
+          ? ''
+          : r.status === 'published'
+            ? '<button class="quiet" id="btn-unpublish">Unpublish</button>'
+            : `<button class="primary" id="btn-publish" ${d.publishable ? '' : 'disabled'}>Publish</button>`}
       </div>
     </div>
 
@@ -562,6 +565,7 @@ async function unpublishReport() {
 }
 
 async function loadSiteStatus() {
+  if (state.hosted) { $('site-status').textContent = ''; return; }
   try {
     const status = await api('/site');
     $('site-status').textContent = status.published_count
@@ -697,7 +701,8 @@ $('new-form').addEventListener('submit', async (event) => {
 async function loadRuntime() {
   try {
     const runtime = await api('/runtime');
-    if (!runtime.hosted) return;
+    state.hosted = Boolean(runtime.hosted);
+    if (!state.hosted) return;
     const note = $('hostnote');
     note.innerHTML = '<strong>Public address, no login.</strong> ' + escapeHtml(runtime.note);
     note.hidden = false;
