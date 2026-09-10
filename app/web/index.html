@@ -20,13 +20,18 @@
       <span class="rail__name">India Equity<br>Research Terminal</span>
     </div>
 
-    <form class="newform" id="new-form">
+    <form class="newform" id="new-form" autocomplete="off">
       <label for="ticker">Analyse a company</label>
-      <div class="newform__row">
-        <input id="ticker" name="ticker" placeholder="RELIANCE" autocomplete="off" spellcheck="false">
-        <button type="submit" id="analyse-btn">Analyse</button>
+      <div class="combo">
+        <div class="newform__row">
+          <input id="ticker" name="ticker" placeholder="Search a name or symbol"
+                 role="combobox" aria-expanded="false" aria-controls="results"
+                 aria-autocomplete="list" autocomplete="off" spellcheck="false">
+          <button type="submit" id="analyse-btn">Analyse</button>
+        </div>
+        <ul class="results" id="results" role="listbox" aria-label="Matching companies" hidden></ul>
       </div>
-      <p class="small dim" id="new-status">Enter an NSE symbol. Data is fetched from free sources.</p>
+      <p class="small dim" id="new-status">Type a company name, such as Muthoot, then pick from the list.</p>
     </form>
 
     <nav class="reportlist" id="report-list" aria-label="Saved reports"></nav>

@@ -191,6 +191,53 @@ tbody tr:hover td { background: color-mix(in srgb, var(--line) 22%, transparent)
 .pos { color: var(--verdigris); }
 .neg { color: var(--brick); }
 
+/* ------------------------------------------------------------------ charts */
+
+.chartbox { margin-block: 1.25rem; }
+.chartbox__title { font-size: var(--micro); color: var(--fg-dim); margin: 0 0 0.5rem; }
+.chart { width: 100%; height: auto; display: block; overflow: visible; }
+
+.chart__line     { fill: none; stroke: var(--marigold); stroke-width: 1.8; stroke-linejoin: round; }
+.chart__line50   { fill: none; stroke: var(--verdigris); stroke-width: 1.3; stroke-dasharray: 5 3; }
+.chart__line200  { fill: none; stroke: color-mix(in srgb, var(--fg-dim) 85%, transparent); stroke-width: 1.3; }
+.chart__linedot  { fill: var(--marigold); }
+.chart__line50dot{ fill: var(--verdigris); }
+.chart__area     { fill: color-mix(in srgb, var(--marigold) 12%, transparent); stroke: none; }
+.chart__grid     { stroke: var(--line); stroke-width: 1; }
+.chart__axisline { stroke: var(--line); stroke-width: 1.5; }
+.chart__vol      { fill: color-mix(in srgb, var(--fg-dim) 30%, transparent); }
+.chart__dot      { fill: var(--marigold); }
+
+.chart__bar      { fill: color-mix(in srgb, var(--marigold) 78%, transparent); }
+.chart__bar2     { fill: color-mix(in srgb, var(--verdigris) 80%, transparent); }
+.chart__marginline { fill: none; stroke: var(--fg-hi); stroke-width: 1.6; }
+.chart__margindot  { fill: var(--fg-hi); }
+
+.chart__band     { fill: color-mix(in srgb, var(--verdigris) 12%, transparent); }
+.chart__median   { stroke: var(--verdigris); stroke-width: 1.2; stroke-dasharray: 4 3; }
+
+.chart__range    { fill: color-mix(in srgb, var(--marigold) 26%, transparent); }
+.chart__tick     { stroke: var(--fg-dim); stroke-width: 1.4; }
+.chart__now      { stroke: var(--brick); stroke-width: 2; }
+.chart__nowlabel { fill: var(--brick); font-family: var(--mono); font-size: 11px; }
+.chart__value    { fill: var(--fg-hi); font-family: var(--mono); font-size: 12px; }
+
+.chart__axis     { fill: var(--fg-dim); font-family: var(--mono); font-size: 10px; }
+.chart__last     { fill: var(--marigold); font-family: var(--mono); font-size: 11px; }
+.chart__empty    { fill: var(--fg-dim); font-family: var(--sans); font-size: 12px; }
+.chart__legend text { fill: var(--fg-dim); font-family: var(--sans); font-size: 10.5px; }
+.chart__legend .chart__key50  { fill: var(--verdigris); }
+.chart__legend .chart__key200 { fill: var(--fg-dim); }
+.chart__legend .chart__key2   { fill: var(--verdigris); }
+.chart__legend .chart__keymargin { fill: var(--fg-hi); }
+
+.spark { vertical-align: middle; }
+.spark path { fill: none; stroke-width: 1.4; }
+.spark--up path { stroke: var(--verdigris); }
+.spark--up circle { fill: var(--verdigris); }
+.spark--down path { stroke: var(--brick); }
+.spark--down circle { fill: var(--brick); }
+
 /* ------------------------------------------------------------------- notes */
 
 .note {

@@ -16,6 +16,7 @@ import yfinance as yf
 
 from app.core import drafts, forensics, metrics, sectors, technical, valuation
 from app.providers import yahoo
+from app.report import charts as chart_maker
 
 DEFAULT_GROWTH_FADE = (0.12, 0.10, 0.09, 0.08, 0.07)
 
@@ -37,6 +38,10 @@ class Analysis:
     scenarios: list[valuation.Scenario]
     valuation_flags: list[str]
     drafts: dict[str, drafts.DraftScore]
+    charts: dict[str, str] = field(default_factory=dict)
+    # Kept on the object for chart building, deliberately not serialised: once the
+    # charts are drawn the raw series only bloats the stored report.
+    price_series: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     assumptions: dict[str, Any] = field(default_factory=dict)
 
@@ -62,6 +67,7 @@ class Analysis:
             "scenarios": [s.as_dict() for s in self.scenarios],
             "valuation_flags": self.valuation_flags,
             "drafts": {k: v.as_dict() for k, v in self.drafts.items()},
+            "charts": self.charts,
             "warnings": self.warnings,
             "assumptions": self.assumptions,
         }
@@ -74,14 +80,51 @@ def _benchmark_history() -> pd.DataFrame | None:
         return None
 
 
+def _price_series(history: pd.DataFrame) -> list[dict[str, Any]]:
+    """Weekly samples of close, both moving averages and volume.
+
+    Sampled weekly rather than daily so the stored payload stays small while the
+    five-year shape and both averages remain faithful. The averages are computed
+    on the daily series first, then sampled.
+    """
+    if history is None or history.empty:
+        return []
+
+    close = history["Close"].astype(float)
+    frame = pd.DataFrame(
+        {
+            "close": close,
+            "sma50": technical.sma(close, 50),
+            "sma200": technical.sma(close, 200),
+            "volume": history["Volume"].astype(float),
+        }
+    )
+    weekly = frame.resample("W").agg(
+        {"close": "last", "sma50": "last", "sma200": "last", "volume": "sum"}
+    ).dropna(subset=["close"])
+
+    out: list[dict[str, Any]] = []
+    for index, row in weekly.iterrows():
+        out.append(
+            {
+                "date": index.date().isoformat(),
+                "close": round(float(row["close"]), 2),
+                "sma50": None if pd.isna(row["sma50"]) else round(float(row["sma50"]), 2),
+                "sma200": None if pd.isna(row["sma200"]) else round(float(row["sma200"]), 2),
+                "volume": None if pd.isna(row["volume"]) else float(row["volume"]),
+            }
+        )
+    return out
+
+
 def analyse(ticker: str, growth_rates: list[float] | None = None) -> Analysis:
     data = yahoo.fetch(ticker)
     warnings = list(data.warnings)
 
     core = metrics.build_core_table(data.annual)
     quarters = metrics.build_quarterly_table(data.quarterly)
-    forensic_report = forensics.analyse(core)
     profile = sectors.classify(data.sector, data.industry)
+    forensic_report = forensics.analyse(core, lender=profile.suppress_ev_multiples)
 
     tech = technical.analyse(data.history, _benchmark_history())
 
@@ -158,6 +201,23 @@ def analyse(ticker: str, growth_rates: list[float] | None = None) -> Analysis:
         net_debt_included=True,
     )
 
+    price_series = _price_series(data.history)
+    core_rows = [r.as_dict() for r in core.rows]
+    lender = profile.suppress_ev_multiples
+    multiple_points = history_multiples.get("pb" if lender else "pe") or []
+    multiple_median = history_multiples.get("median_pb" if lender else "median_pe")
+
+    built_charts = {
+        "price": chart_maker.price_chart(price_series),
+        "revenue_profit": chart_maker.revenue_profit_chart(core_rows),
+        "returns": chart_maker.returns_chart(core_rows, lender=lender),
+        "multiple": chart_maker.multiple_history_chart(
+            multiple_points,
+            multiple_median,
+            "Price to book" if lender else "Price to earnings",
+        ),
+    }
+
     draft_scores = drafts.draft_all(
         table=core,
         quarters=quarters,
@@ -207,6 +267,8 @@ def analyse(ticker: str, growth_rates: list[float] | None = None) -> Analysis:
         scenarios=scenarios,
         valuation_flags=flags,
         drafts=draft_scores,
+        charts=built_charts,
+        price_series=price_series,
         warnings=warnings,
         assumptions={
             "risk_free": valuation.DEFAULT_RISK_FREE,

@@ -87,6 +87,16 @@
     {% endif %}
   </section>
 
+  {% if charts.price %}
+  <section>
+    <div class="section-head">
+      <h2>Price</h2>
+      <p>Five years of weekly closes against the 50 and 200 day averages, with volume beneath.</p>
+    </div>
+    <div class="chartbox">{{ charts.price | safe }}</div>
+  </section>
+  {% endif %}
+
   {% if narrative.why %}
   <section>
     <div class="section-head"><h2>Why this conclusion</h2></div>
@@ -142,6 +152,13 @@
       <p>A range, not a point. Every assumption is stated and is a model input rather than a reported fact.</p>
     </div>
 
+    {% if charts.scenarios %}
+    <div class="chartbox">
+      <p class="chartbox__title">Where the price sits inside the scenario range</p>
+      {{ charts.scenarios | safe }}
+    </div>
+    {% endif %}
+
     {% if scenarios %}
     <div class="table-scroll">
       <table>
@@ -196,6 +213,13 @@
       {% endif %}
     </div>
 
+    {% if charts.multiple %}
+    <div class="chartbox" style="margin-top:1.75rem">
+      <p class="chartbox__title">The valuation multiple against its own five-year median</p>
+      {{ charts.multiple | safe }}
+    </div>
+    {% endif %}
+
     {% if analysis.sensitivity %}
     <div class="table-scroll" style="margin-top: 1.75rem;">
       <table>
@@ -233,6 +257,12 @@
       <h2>Financial record</h2>
       <p>Reported figures in crore. Source: {{ company.source }}, retrieved {{ company.fetched_at | long_date }}.</p>
     </div>
+    {% if charts.revenue_profit %}
+    <div class="chartbox">{{ charts.revenue_profit | safe }}</div>
+    {% endif %}
+    {% if charts.returns %}
+    <div class="chartbox">{{ charts.returns | safe }}</div>
+    {% endif %}
     <div class="table-scroll">
       <table>
         <thead>

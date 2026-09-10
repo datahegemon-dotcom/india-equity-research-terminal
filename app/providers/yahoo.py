@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import pandas as pd
+import requests
 import yfinance as yf
 
 from app.net import configure_trust
@@ -160,6 +161,77 @@ def to_yahoo_symbol(ticker: str) -> str:
     if t.endswith(".NS") or t.endswith(".BO"):
         return t
     return f"{t}.NS"
+
+
+SEARCH_URL = "https://query2.finance.yahoo.com/v1/finance/search"
+
+# Yahoo's exchange codes for the two Indian exchanges, best listing first.
+_EXCHANGE_RANK = {"NSI": 0, "BSE": 1}
+_EXCHANGE_NAME = {"NSI": "NSE", "BSE": "BSE"}
+
+
+def search(query: str, limit: int = 8) -> list[dict[str, str]]:
+    """Find Indian listings whose name or symbol matches a search term.
+
+    Foreign listings of the same company are dropped. An analyst working on
+    Indian equities does not want the Frankfurt or New York line, and showing
+    them would invite picking the wrong one.
+    """
+    term = query.strip()
+    if len(term) < 2:
+        return []
+
+    try:
+        response = requests.get(
+            SEARCH_URL,
+            params={"q": term, "quotesCount": 25, "newsCount": 0, "enableFuzzyQuery": "false"},
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=12,
+        )
+        response.raise_for_status()
+        quotes = response.json().get("quotes", [])
+    except Exception:  # noqa: BLE001 - search is a convenience, never fatal
+        return []
+
+    matches: list[dict[str, str]] = []
+    for quote in quotes:
+        exchange = quote.get("exchange")
+        if exchange not in _EXCHANGE_RANK or quote.get("quoteType") != "EQUITY":
+            continue
+        symbol = quote.get("symbol", "")
+        matches.append(
+            {
+                "symbol": symbol,
+                "ticker": symbol.removesuffix(".NS").removesuffix(".BO"),
+                "name": _title_case(quote.get("longname") or quote.get("shortname") or symbol),
+                "exchange": _EXCHANGE_NAME[exchange],
+                "rank": _EXCHANGE_RANK[exchange],
+            }
+        )
+
+    # One row per company, preferring the NSE listing.
+    best: dict[str, dict[str, str]] = {}
+    for match in sorted(matches, key=lambda m: m["rank"]):
+        best.setdefault(match["ticker"], match)
+
+    ordered = sorted(best.values(), key=lambda m: (m["rank"], m["name"]))
+    for match in ordered:
+        match.pop("rank", None)
+    return ordered[:limit]
+
+
+def _title_case(name: str) -> str:
+    """Yahoo shouts Indian company names. Make them readable without mangling initialisms."""
+    keep_upper = {"NSE", "BSE", "IT", "IDFC", "HDFC", "ICICI", "SBI", "TCS", "ITC", "L&T",
+                  "ONGC", "NTPC", "BPCL", "HPCL", "GAIL", "IOC", "LIC", "TVS", "MRF", "UPL"}
+    words = []
+    for word in name.replace(".", ". ").split():
+        stripped = word.strip(".,")
+        if stripped.upper() in keep_upper or (len(stripped) <= 3 and stripped.isupper()):
+            words.append(word.upper())
+        else:
+            words.append(word.capitalize())
+    return " ".join(words).replace(". ", ".").replace("Ltd", "Ltd").strip()
 
 
 def _collect(frame: pd.DataFrame | None, fields: dict[str, tuple[str, ...]], limit: int) -> list[Period]:

@@ -354,7 +354,11 @@ function renderValuation() {
   const wacc = p.analysis.wacc || {};
   const dcf = p.analysis.dcf;
 
+  const charts = p.analysis.charts || {};
+  const scenarioChart = state.decision.scenario_chart || '';
+
   $('valuation').innerHTML = `
+    ${scenarioChart ? `<div class="chartbox"><p class="chartbox__title">Where the price sits inside the scenario range</p>${scenarioChart}</div>` : ''}
     <div class="table-scroll">
       <table class="scenario-editor">
         <thead><tr><th style="text-align:left">Scenario</th><th>Value per share</th><th>Against price</th><th>Probability</th><th style="text-align:left">Assumption</th></tr></thead>
@@ -379,6 +383,8 @@ function renderValuation() {
         <dt>Terminal share of value</dt><dd>${fmt.pct(dcf.terminal_share, 0)}</dd>` : ''}
       </dl>
     </div>
+
+    ${charts.multiple ? `<div class="chartbox" style="margin-top:1.5rem"><p class="chartbox__title">The valuation multiple against its own five-year median</p>${charts.multiple}</div>` : ''}
 
     ${(p.analysis.valuation_flags || []).length ? `<div class="blockers" style="border-left-color:var(--marigold)"><h4>Valuation checks</h4><ul>${p.analysis.valuation_flags.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul></div>` : ''}
   `;
@@ -480,7 +486,12 @@ function renderData() {
   const flags = ((a.forensics || {}).flags || []).map((f) => `
     <li><strong>${escapeHtml(f.title)}.</strong> ${escapeHtml(f.observation)}</li>`).join('');
 
+  const charts = a.charts || {};
+
   $('data').innerHTML = `
+    ${charts.price ? `<div class="chartbox"><p class="chartbox__title">Five years of weekly closes against the 50 and 200 day averages</p>${charts.price}</div>` : ''}
+    ${charts.revenue_profit ? `<div class="chartbox"><p class="chartbox__title">Revenue and profit by year, with the operating margin over them</p>${charts.revenue_profit}</div>` : ''}
+    ${charts.returns ? `<div class="chartbox"><p class="chartbox__title">Return ratios by year</p>${charts.returns}</div>` : ''}
     ${(a.warnings || []).length ? `<div class="blockers" style="border-left-color:var(--marigold)"><h4>Data gaps</h4><ul>${a.warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul></div>` : ''}
 
     <div class="table-scroll" style="margin-top:1.25rem">
@@ -580,18 +591,90 @@ async function loadSiteStatus() {
   }
 }
 
-$('new-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const ticker = $('ticker').value.trim().toUpperCase();
-  if (!ticker) return;
+// ------------------------------------------------------------- company search
+
+const search = { results: [], active: -1, timer: null, lastQuery: '' };
+const HINT = 'Type a company name, such as Muthoot, then pick from the list.';
+
+function closeResults() {
+  $('results').hidden = true;
+  $('ticker').setAttribute('aria-expanded', 'false');
+  search.active = -1;
+}
+
+function renderResults() {
+  const list = $('results');
+  if (!search.results.length) {
+    list.innerHTML = `<li class="none">Nothing listed matches "${escapeHtml(search.lastQuery)}".</li>`;
+  } else {
+    list.innerHTML = search.results.map((r, i) => `
+      <li role="option" data-index="${i}" aria-selected="${i === search.active}">
+        <strong>${escapeHtml(r.name)}</strong>
+        <span>${escapeHtml(r.ticker)} · ${escapeHtml(r.exchange)}</span>
+      </li>`).join('');
+    list.querySelectorAll('li').forEach((li) => {
+      li.addEventListener('mousedown', (event) => {
+        event.preventDefault();
+        choose(search.results[Number(li.dataset.index)]);
+      });
+    });
+  }
+  list.hidden = false;
+  $('ticker').setAttribute('aria-expanded', 'true');
+}
+
+async function runSearch(query) {
+  search.lastQuery = query;
+  try {
+    search.results = await api(`/search?q=${encodeURIComponent(query)}`);
+  } catch {
+    search.results = [];
+  }
+  if ($('ticker').value.trim() !== query) return;
+  search.active = search.results.length ? 0 : -1;
+  renderResults();
+}
+
+function choose(match) {
+  if (!match) return;
+  closeResults();
+  $('ticker').value = match.name;
+  analyse(match.ticker, match.name);
+}
+
+$('ticker').addEventListener('input', () => {
+  const query = $('ticker').value.trim();
+  clearTimeout(search.timer);
+  if (query.length < 2) { closeResults(); return; }
+  search.timer = setTimeout(() => runSearch(query), 220);
+});
+
+$('ticker').addEventListener('keydown', (event) => {
+  if ($('results').hidden || !search.results.length) return;
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    search.active = (search.active + step + search.results.length) % search.results.length;
+    renderResults();
+  } else if (event.key === 'Enter' && search.active >= 0) {
+    event.preventDefault();
+    choose(search.results[search.active]);
+  } else if (event.key === 'Escape') {
+    closeResults();
+  }
+});
+
+$('ticker').addEventListener('blur', () => setTimeout(closeResults, 120));
+
+async function analyse(ticker, label) {
   const button = $('analyse-btn');
   button.disabled = true;
   button.innerHTML = '<span class="spinner"></span>';
-  $('new-status').textContent = `Fetching ${ticker}. This takes a few seconds.`;
+  $('new-status').textContent = `Fetching ${label || ticker}. This takes a few seconds.`;
   try {
     const result = await api('/reports', { method: 'POST', body: JSON.stringify({ ticker }) });
     $('ticker').value = '';
-    $('new-status').textContent = 'Enter an NSE symbol. Data is fetched from free sources.';
+    $('new-status').textContent = HINT;
     await loadReports();
     await openReport(result.record.id);
     toast(`${result.record.company_name || ticker} loaded with proposed scores.`);
@@ -600,6 +683,33 @@ $('new-form').addEventListener('submit', async (event) => {
   } finally {
     button.disabled = false;
     button.textContent = 'Analyse';
+  }
+}
+
+$('new-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const typed = $('ticker').value.trim();
+  if (!typed) return;
+
+  // A highlighted match wins. Otherwise look the text up, and only fall through
+  // to treating it as a literal symbol when nothing matches.
+  if (search.active >= 0 && search.results[search.active]) {
+    choose(search.results[search.active]);
+    return;
+  }
+  closeResults();
+  $('new-status').textContent = `Looking up ${typed}.`;
+  const matches = await api(`/search?q=${encodeURIComponent(typed)}`).catch(() => []);
+  if (matches.length === 1) {
+    choose(matches[0]);
+  } else if (matches.length > 1) {
+    search.results = matches;
+    search.lastQuery = typed;
+    search.active = 0;
+    renderResults();
+    $('new-status').textContent = 'More than one match. Pick the company you mean.';
+  } else {
+    analyse(typed.toUpperCase(), typed);
   }
 });
 

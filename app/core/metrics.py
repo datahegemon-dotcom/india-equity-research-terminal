@@ -79,7 +79,9 @@ class PeriodMetrics:
     equity: float | None
     total_debt: float | None
     net_debt: float | None
+    total_assets: float | None
     roe: float | None
+    roa: float | None
     roce: float | None
     net_debt_to_ebitda: float | None
     interest_coverage: float | None
@@ -129,7 +131,9 @@ def _period_metrics(p: Period) -> PeriodMetrics:
         equity=equity,
         total_debt=total_debt,
         net_debt=net_debt,
+        total_assets=p.get("total_assets"),
         roe=_div(pat, equity),
+        roa=_div(pat, p.get("total_assets")),
         roce=_div(ebit, invested_capital),
         net_debt_to_ebitda=_div(net_debt, ebitda),
         interest_coverage=_abs_div(ebit, p.get("interest_expense")),
@@ -163,7 +167,7 @@ class CoreTable:
 
 
 CAGR_FIELDS = ("revenue", "ebitda", "ebit", "pat", "eps", "cfo", "fcf")
-TREND_FIELDS = ("ebitda_margin", "pat_margin", "roe", "roce", "net_debt", "cfo_to_pat", "interest_coverage")
+TREND_FIELDS = ("ebitda_margin", "pat_margin", "roe", "roa", "roce", "net_debt", "cfo_to_pat", "interest_coverage")
 
 
 def build_core_table(periods: Iterable[Period]) -> CoreTable:

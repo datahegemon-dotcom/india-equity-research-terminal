@@ -16,6 +16,8 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from app.report import charts as chart_maker
+
 from app.core.scoring import (
     AUDIT_QUESTIONS,
     CATEGORY_LABELS,
@@ -225,6 +227,11 @@ def build_view(record: dict[str, Any]) -> dict[str, Any]:
 
     narrative = payload.get("narrative") or {}
 
+    # The scenario chart is drawn here rather than stored, because the analyst
+    # edits scenario values after the data was fetched.
+    built = dict(analysis.get("charts") or {})
+    built["scenarios"] = chart_maker.scenario_chart(scenarios, (analysis.get("company") or {}).get("price"))
+
     return {
         "record": record,
         "payload": payload,
@@ -241,6 +248,7 @@ def build_view(record: dict[str, Any]) -> dict[str, Any]:
         "disclaimer": DISCLAIMER,
         "category_labels": CATEGORY_LABELS,
         "category_weights": CATEGORY_WEIGHTS,
+        "charts": built,
         "generated": record.get("published_at") or record.get("updated_at"),
     }
 

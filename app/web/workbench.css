@@ -61,6 +61,31 @@ button.primary { background: var(--marigold); border-color: var(--marigold); col
 button.primary:hover { background: #f2b154; }
 button.quiet { background: transparent; }
 
+.combo { position: relative; }
+
+.results {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0.25rem;
+  background: var(--ink-3);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  max-height: 17rem;
+  overflow-y: auto;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 0.45);
+}
+.results li {
+  padding: 0.45rem 0.55rem;
+  border-radius: 2px;
+  cursor: pointer;
+  line-height: 1.35;
+}
+.results li[aria-selected="true"], .results li:hover { background: color-mix(in srgb, var(--marigold) 20%, transparent); }
+.results strong { display: block; color: var(--on-ink-hi); font-weight: 500; font-size: 0.8125rem; }
+.results span { font-family: var(--mono); font-size: 0.6875rem; color: var(--on-ink-dim); }
+.results .none { color: var(--on-ink-dim); cursor: default; font-size: var(--micro); }
+.results .none:hover { background: transparent; }
+
 .reportlist { display: flex; flex-direction: column; gap: 1px; flex: 1; }
 .reportlist__group { font-size: var(--micro); color: var(--on-ink-dim); margin: 0.75rem 0 0.35rem; }
 .reportitem {

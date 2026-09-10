@@ -14,6 +14,7 @@ from fastapi.responses import HTMLResponse
 from app import db
 from app.core import pipeline
 from app.core.scoring import AUDIT_QUESTIONS, CATEGORY_LABELS, CATEGORY_WEIGHTS, classify_margin_of_safety
+from app.providers import yahoo
 from app.report import publish as publisher
 from app.report import render
 
@@ -36,6 +37,7 @@ def _decision_payload(record: dict[str, Any]) -> dict[str, Any]:
         "margin_of_safety": decision.margin_of_safety.value,
         "columns": view["columns"],
         "expected_value": view["expected_value"],
+        "scenario_chart": view["charts"].get("scenarios", ""),
     }
 
 
@@ -59,6 +61,12 @@ def meta() -> dict[str, Any]:
             "Expectations extreme, high downside on disappointment",
         ],
     }
+
+
+@router.get("/search")
+def search_companies(q: str = "") -> list[dict[str, str]]:
+    """Find listed companies by name or symbol, so nobody has to guess a ticker."""
+    return yahoo.search(q)
 
 
 @router.get("/reports")

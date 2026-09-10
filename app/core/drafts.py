@@ -77,6 +77,10 @@ def _x(value: float | None) -> str:
 
 
 def draft_quality(table: CoreTable, forensics: ForensicReport, profile: SectorProfile) -> DraftScore:
+    lender = profile.suppress_ev_multiples
+    if lender:
+        return _draft_quality_lender(table, profile)
+
     b = _Builder("quality")
     latest = table.latest
     evidence_count = 0
@@ -128,6 +132,55 @@ def draft_quality(table: CoreTable, forensics: ForensicReport, profile: SectorPr
     confidence = "moderate" if evidence_count >= 3 else "low"
     note = profile.note if profile.suppress_ev_multiples else ""
     return b.build(confidence, note=note)
+
+
+def _draft_quality_lender(table: CoreTable, profile: SectorProfile) -> DraftScore:
+    """Quality for a bank or non-banking finance company.
+
+    Return on capital employed, cash conversion and net debt to EBITDA describe
+    an industrial company, not a lender. Framework 07 asks for return on assets,
+    return on equity, underwriting quality and funding strength instead. Only the
+    first two can be computed from the free data, so the score is proposed with
+    low confidence and flagged as needing the analyst.
+    """
+    b = _Builder("quality")
+    latest = table.latest
+
+    if latest and latest.roa is not None:
+        roa = latest.roa
+        if roa > 0.035:
+            b.add("Strong return on assets for a lender", 2.0, f"Return on assets {_pct(roa)}")
+        elif roa > 0.02:
+            b.add("Healthy return on assets", 1.25, f"Return on assets {_pct(roa)}")
+        elif roa > 0.01:
+            b.add("Modest return on assets", 0.25, f"Return on assets {_pct(roa)}")
+        else:
+            b.add("Weak return on assets", -1.5, f"Return on assets {_pct(roa)}")
+
+    if latest and latest.roe is not None:
+        roe = latest.roe
+        if roe > 0.18:
+            b.add("High return on equity", 1.25, f"Return on equity {_pct(roe)}")
+        elif roe > 0.12:
+            b.add("Adequate return on equity", 0.5, f"Return on equity {_pct(roe)}")
+        elif roe < 0.08:
+            b.add("Low return on equity", -1.25, f"Return on equity {_pct(roe)}")
+
+    if table.trend.get("roa") == "consistently rising":
+        b.add("Return on assets improving each year", 0.5, "Five-year trend")
+    elif table.trend.get("roa") == "consistently falling":
+        b.add("Return on assets deteriorating each year", -0.75, "Five-year trend")
+
+    return b.build(
+        "low",
+        requires_analyst=True,
+        note=(
+            "Only return on assets and return on equity could be computed. Asset quality, "
+            "slippages, credit cost, provision coverage, capital adequacy, cost of funds and "
+            "CASA are not in the free data and must be read from the results and set here. "
+            "Falling non-performing assets are not improvement if write-offs are masking stress."
+        ),
+    )
 
 
 def draft_growth(table: CoreTable) -> DraftScore:
@@ -310,9 +363,16 @@ def draft_catalysts() -> DraftScore:
     )
 
 
-def draft_risk(table: CoreTable, forensics: ForensicReport, relative: dict, beta: float | None) -> DraftScore:
+def draft_risk(
+    table: CoreTable,
+    forensics: ForensicReport,
+    relative: dict,
+    beta: float | None,
+    profile: SectorProfile | None = None,
+) -> DraftScore:
     """Reversed scale: ten is low risk, one is extreme risk."""
-    b = _Builder("risk", base=6.0)
+    lender = bool(profile and profile.suppress_ev_multiples)
+    b = _Builder("risk", base=6.0 if not lender else 5.0)
     latest = table.latest
 
     if forensics.score >= 9:
@@ -324,13 +384,13 @@ def draft_risk(table: CoreTable, forensics: ForensicReport, relative: dict, beta
     else:
         b.add("Few forensic concerns", 1.0, f"Red-flag score {forensics.score}")
 
-    if latest and latest.net_debt_to_ebitda is not None:
+    if not lender and latest and latest.net_debt_to_ebitda is not None:
         if latest.net_debt_to_ebitda <= 0:
             b.add("Net cash reduces financial risk", 1.0, f"Net debt to EBITDA {_x(latest.net_debt_to_ebitda)}")
         elif latest.net_debt_to_ebitda > 3:
             b.add("Leverage raises financial risk", -1.5, f"Net debt to EBITDA {_x(latest.net_debt_to_ebitda)}")
 
-    if latest and latest.interest_coverage is not None and latest.interest_coverage < 3:
+    if not lender and latest and latest.interest_coverage is not None and latest.interest_coverage < 3:
         b.add("Thin interest cover", -1.0, f"Interest cover {_x(latest.interest_coverage)}")
 
     premium = relative.get("pe_premium")
@@ -340,10 +400,18 @@ def draft_risk(table: CoreTable, forensics: ForensicReport, relative: dict, beta
     if beta is not None and beta > 1.3:
         b.add("Above-market volatility", -0.5, f"Beta {beta:.2f}")
 
+    lender_note = (
+        "Leverage and interest cover were not applied, because a lender is leveraged by design. "
+        "Asset quality, liquidity, capital adequacy and regulatory risk decide this score and "
+        "must be set by you. "
+        if lender else ""
+    )
     return b.build(
-        "moderate",
+        "low" if lender else "moderate",
+        requires_analyst=lender,
         note=(
-            "Covers financial and valuation risk only. Governance, regulatory, competitive, macro, "
+            lender_note
+            + "Covers financial and valuation risk only. Governance, regulatory, competitive, macro, "
             "currency and commodity risk require analyst assessment per framework 14 section 9."
         ),
     )
@@ -365,5 +433,5 @@ def draft_all(
         "valuation": draft_valuation(relative, fcf_yield, profile),
         "moat": draft_moat(table, profile),
         "catalysts": draft_catalysts(),
-        "risk": draft_risk(table, forensics, relative, beta),
+        "risk": draft_risk(table, forensics, relative, beta, profile),
     }

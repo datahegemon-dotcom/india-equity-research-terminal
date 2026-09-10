@@ -66,7 +66,15 @@ def _x(value: float | None) -> str:
     return "unavailable" if value is None else f"{value:.2f}x"
 
 
-def analyse(table: CoreTable) -> ForensicReport:
+def analyse(table: CoreTable, lender: bool = False) -> ForensicReport:
+    """Run the forensic checks.
+
+    Several of them are meaningless for a bank or non-banking finance company.
+    A lender that is growing its loan book reports negative operating cash flow
+    and carries leverage many times earnings by design, so applying the generic
+    tests would flag healthy lending as a red flag. Framework 07 requires asset
+    quality, funding and capital adequacy instead, and those need analyst input.
+    """
     flags: list[Flag] = []
     rows = table.rows
     latest = table.latest
@@ -78,7 +86,7 @@ def analyse(table: CoreTable) -> ForensicReport:
         cumulative_conversion = sum(cfo_series) / sum(pat_series)
 
     # Earnings quality: profit that does not become cash.
-    if cumulative_conversion is not None and cumulative_conversion < 0.8:
+    if not lender and cumulative_conversion is not None and cumulative_conversion < 0.8:
         flags.append(
             Flag(
                 "cash_conversion",
@@ -94,7 +102,7 @@ def analyse(table: CoreTable) -> ForensicReport:
 
     pat_growth = cagr([r.pat for r in rows])
     cfo_growth = cagr([r.cfo for r in rows])
-    if pat_growth is not None and cfo_growth is not None and pat_growth > 0.10 and cfo_growth < pat_growth / 2:
+    if not lender and pat_growth is not None and cfo_growth is not None and pat_growth > 0.10 and cfo_growth < pat_growth / 2:
         flags.append(
             Flag(
                 "pat_cfo_divergence",
@@ -109,7 +117,7 @@ def analyse(table: CoreTable) -> ForensicReport:
         )
 
     # Balance sheet.
-    if latest and latest.net_debt_to_ebitda is not None and latest.net_debt_to_ebitda > 3:
+    if not lender and latest and latest.net_debt_to_ebitda is not None and latest.net_debt_to_ebitda > 3:
         flags.append(
             Flag(
                 "leverage",
@@ -120,7 +128,7 @@ def analyse(table: CoreTable) -> ForensicReport:
             )
         )
 
-    if latest and latest.interest_coverage is not None and latest.interest_coverage < 3:
+    if not lender and latest and latest.interest_coverage is not None and latest.interest_coverage < 3:
         flags.append(
             Flag(
                 "interest_cover",
@@ -132,7 +140,7 @@ def analyse(table: CoreTable) -> ForensicReport:
         )
 
     # Free cash flow.
-    negative_fcf_years = [r.label for r in rows if r.fcf is not None and r.fcf < 0]
+    negative_fcf_years = [] if lender else [r.label for r in rows if r.fcf is not None and r.fcf < 0]
     if len(negative_fcf_years) >= 2:
         flags.append(
             Flag(
@@ -145,7 +153,7 @@ def analyse(table: CoreTable) -> ForensicReport:
         )
 
     # Returns.
-    roce_series = [r.roce for r in rows if r.roce is not None]
+    roce_series = [] if lender else [r.roce for r in rows if r.roce is not None]
     if len(roce_series) >= 3 and roce_series[-1] < roce_series[0] * 0.7:
         flags.append(
             Flag(
@@ -210,6 +218,21 @@ def analyse(table: CoreTable) -> ForensicReport:
                 )
             )
 
+    if lender:
+        flags.append(
+            Flag(
+                "lender_metrics",
+                "Lender metrics are not covered by these automatic checks",
+                severity=0,
+                observation=(
+                    "Cash conversion, leverage and free cash flow tests were skipped because they "
+                    "do not describe a lender. Asset quality, slippages, credit cost, provision "
+                    "coverage, capital adequacy and funding mix must be assessed directly."
+                ),
+                evidence="Framework 07 and framework 14 section 16.",
+            )
+        )
+
     score = sum(f.severity for f in flags)
 
     return ForensicReport(
@@ -217,8 +240,8 @@ def analyse(table: CoreTable) -> ForensicReport:
         score=score,
         concern=_concern(score),
         cash_conversion=cumulative_conversion,
-        financial_strength=_strength_score(latest),
-        cash_flow_quality=_cash_quality_score(cumulative_conversion),
+        financial_strength=_strength_score(latest) if not lender else None,
+        cash_flow_quality=_cash_quality_score(cumulative_conversion) if not lender else None,
     )
 
 
