@@ -1,0 +1,241 @@
+/* India Equity Research Terminal — design system
+ *
+ * Two surfaces share one spine. `.ink` is the private workbench: an instrument
+ * you sit in front of for hours. `.paper` is the published report: a document
+ * people read and print. Same type, same accent, same weight bar.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  --ink:        #101828;
+  --ink-2:      #172034;
+  --ink-3:      #1e2942;
+  --rule:       #2c3a5c;
+  --rule-soft:  #223051;
+  --on-ink-hi:  #f2f5fa;
+  --on-ink:     #c3cbda;
+  --on-ink-dim: #8592ac;
+
+  --paper:      #eef0f3;
+  --paper-2:    #e4e8ee;
+  --paper-rule: #c8cfda;
+  --on-paper-hi:#111a2c;
+  --on-paper:   #2c3852;
+  --on-paper-dim:#5c6883;
+
+  --marigold:   #e8a33d;
+  --marigold-2: #c9862a;
+  --verdigris:  #1f9169;
+  --brick:      #c14a30;
+
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --serif: "Spectral", Georgia, "Times New Roman", serif;
+
+  --step-0: 0.9375rem;
+  --step-1: 1.125rem;
+  --step-2: 1.5rem;
+  --step-3: 2.125rem;
+  --step-4: 3rem;
+  --micro: 0.75rem;
+
+  --gutter: clamp(1rem, 4vw, 3.5rem);
+  --measure: 68ch;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  font-feature-settings: "tnum" 1;
+}
+
+body.ink   { background: var(--ink);   color: var(--on-ink); }
+body.paper { background: var(--paper); color: var(--on-paper); }
+
+.ink   { --bg: var(--ink);   --bg-2: var(--ink-2);  --line: var(--rule);
+         --fg-hi: var(--on-ink-hi);  --fg: var(--on-ink);  --fg-dim: var(--on-ink-dim); }
+.paper { --bg: var(--paper); --bg-2: var(--paper-2); --line: var(--paper-rule);
+         --fg-hi: var(--on-paper-hi); --fg: var(--on-paper); --fg-dim: var(--on-paper-dim); }
+
+h1, h2, h3, h4 { color: var(--fg-hi); font-weight: 600; line-height: 1.15; margin: 0; }
+
+a { color: inherit; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--marigold);
+  outline-offset: 2px;
+}
+
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.dim { color: var(--fg-dim); }
+.small { font-size: var(--micro); }
+
+/* ------------------------------------------------------------------ layout */
+
+.shell { max-width: 1180px; margin: 0 auto; padding-inline: var(--gutter); }
+.shell--narrow { max-width: 860px; }
+
+.masthead {
+  border-bottom: 1px solid var(--line);
+  padding-block: 0.85rem;
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.masthead__name {
+  font-family: var(--serif);
+  font-size: var(--step-1);
+  letter-spacing: -0.01em;
+  color: var(--fg-hi);
+}
+.masthead__note { font-size: var(--micro); color: var(--fg-dim); }
+
+section { padding-block: clamp(1.75rem, 4vw, 3rem); border-bottom: 1px solid var(--line); }
+section:last-of-type { border-bottom: 0; }
+
+.section-head { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.section-head h2 { font-family: var(--serif); font-size: var(--step-2); letter-spacing: -0.015em; }
+.section-head p { margin: 0; color: var(--fg-dim); font-size: var(--micro); max-width: 46ch; }
+
+.prose { max-width: var(--measure); }
+.prose p { margin: 0 0 0.9em; }
+.paper .prose { font-family: var(--serif); font-size: 1.0625rem; line-height: 1.65; }
+
+.grid { display: grid; gap: clamp(1rem, 2.5vw, 2rem); }
+.grid--2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.grid--3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* ------------------------------------------------------- identity and price */
+
+.identity { display: flex; justify-content: space-between; gap: 2rem; flex-wrap: wrap; align-items: flex-end; }
+.identity h1 { font-family: var(--serif); font-size: var(--step-3); letter-spacing: -0.02em; }
+.identity__price { text-align: right; }
+.identity__price .value { font-family: var(--mono); font-size: var(--step-2); color: var(--fg-hi); }
+
+.factline {
+  display: flex; flex-wrap: wrap; gap: 0 1.75rem;
+  margin-top: 0.9rem; font-size: var(--micro); color: var(--fg-dim);
+}
+.factline > span { display: inline-flex; gap: 0.4rem; }
+.factline b { font-weight: 500; color: var(--fg); font-family: var(--mono); }
+
+/* --------------------------------------------------------- the weight bar */
+/* Column width is the category weight, fill height is the raw score, so the
+ * filled area equals the score out of one hundred. */
+
+.weightbar {
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  padding: clamp(1rem, 3vw, 1.75rem);
+  border-radius: 2px;
+}
+.weightbar__top { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.weightbar__score { font-family: var(--mono); font-size: var(--step-4); line-height: 1; color: var(--fg-hi); letter-spacing: -0.03em; }
+.weightbar__score small { font-size: var(--step-1); color: var(--fg-dim); letter-spacing: 0; }
+.weightbar__band { font-size: var(--step-1); font-weight: 600; }
+
+.columns { display: flex; gap: 3px; height: 168px; align-items: flex-end; }
+.column { position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+          background: color-mix(in srgb, var(--line) 45%, transparent); border-radius: 1px; overflow: hidden; }
+.column__fill { background: var(--marigold); transition: height 900ms cubic-bezier(.2,.7,.3,1); }
+.column__fill--strong { background: var(--verdigris); }
+.column__fill--weak   { background: var(--brick); }
+
+.column__caption { margin-top: 0.5rem; font-size: 0.6875rem; color: var(--fg-dim); line-height: 1.25; }
+.column__caption b { display: block; color: var(--fg); font-family: var(--mono); font-weight: 500; }
+.captions { display: flex; gap: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .column__fill { transition: none; }
+}
+
+/* ----------------------------------------------------------------- verdict */
+
+.verdict { display: inline-flex; align-items: baseline; gap: 0.6rem; font-weight: 600; }
+.verdict__word { font-family: var(--serif); font-size: var(--step-3); letter-spacing: -0.02em; }
+.tone-positive { color: var(--verdigris); }
+.tone-neutral  { color: var(--marigold); }
+.tone-negative { color: var(--brick); }
+
+/* ------------------------------------------------------------------ tables */
+
+table { width: 100%; border-collapse: collapse; font-size: var(--micro); }
+caption { text-align: left; color: var(--fg-dim); font-size: var(--micro); padding-bottom: 0.5rem; }
+th, td { padding: 0.45rem 0.6rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { color: var(--fg-dim); font-weight: 500; border-bottom-width: 1px; }
+tbody td { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); }
+tbody td:first-child { font-family: var(--sans); color: var(--fg-hi); }
+tbody tr:hover td { background: color-mix(in srgb, var(--line) 22%, transparent); }
+.table-scroll { overflow-x: auto; }
+
+.pos { color: var(--verdigris); }
+.neg { color: var(--brick); }
+
+/* ------------------------------------------------------------------- notes */
+
+.note {
+  border-left: 3px solid var(--marigold);
+  padding: 0.75rem 0 0.75rem 1rem;
+  margin-block: 1rem;
+  max-width: var(--measure);
+}
+.note--negative { border-left-color: var(--brick); }
+.note--positive { border-left-color: var(--verdigris); }
+.note h4 { font-size: var(--step-0); margin-bottom: 0.25rem; }
+.note p { margin: 0; font-size: var(--micro); color: var(--fg); }
+
+.stack { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 0.35rem 1rem; font-size: var(--micro); }
+.kv dt { color: var(--fg-dim); }
+.kv dd { margin: 0; font-family: var(--mono); color: var(--fg-hi); text-align: right; }
+
+.list-clean { margin: 0; padding-left: 1.1rem; max-width: var(--measure); }
+.list-clean li { margin-bottom: 0.4rem; }
+
+/* ----------------------------------------------------------- rubric / bars */
+
+.rubric { display: grid; gap: 0.4rem; font-size: var(--micro); }
+.rubric__row { display: grid; grid-template-columns: 1fr auto 5rem; gap: 0.75rem; align-items: center; }
+.rubric__track { height: 4px; background: color-mix(in srgb, var(--line) 55%, transparent); border-radius: 2px; }
+.rubric__fill { height: 100%; background: var(--marigold); border-radius: 2px; }
+.rubric__detail { grid-column: 1 / -1; color: var(--fg-dim); margin-top: -0.15rem; }
+
+/* ------------------------------------------------------------------ footer */
+
+.colophon { padding-block: 2.5rem 3.5rem; border-top: 2px solid var(--line); }
+.colophon__credit { max-width: var(--measure); }
+.colophon__credit h3 { font-family: var(--serif); font-size: var(--step-1); margin-bottom: 0.5rem; }
+.colophon__credit p { margin: 0 0 0.6em; font-size: var(--micro); color: var(--fg-dim); line-height: 1.6; }
+.colophon__credit .creds { font-family: var(--mono); color: var(--fg); }
+.colophon__disclaimer { margin-top: 1.75rem; max-width: var(--measure); font-size: var(--micro); color: var(--fg-dim); line-height: 1.6; }
+.colophon__disclaimer strong { color: var(--fg); }
+
+.banner {
+  background: color-mix(in srgb, var(--marigold) 14%, transparent);
+  border-block: 1px solid color-mix(in srgb, var(--marigold) 40%, transparent);
+  padding: 0.6rem 0;
+  font-size: var(--micro);
+  color: var(--fg);
+}
+.banner .shell { display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------------ print */
+
+@media print {
+  body.paper { background: #fff; }
+  .banner, .masthead__note { color: #000; }
+  section { break-inside: avoid; border-color: #ccc; }
+  .weightbar { border-color: #999; }
+  a { text-decoration: none; }
+}

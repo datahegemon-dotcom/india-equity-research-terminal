@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ company.name or record.ticker }} — India Equity Research Terminal</title>
+<meta name="description" content="Framework-driven equity analysis of {{ company.name or record.ticker }}, published as an educational demonstration of the V1.2 scoring engine.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<style>{{ inline_css }}</style>
+</head>
+<body class="paper">
+
+<div class="banner">
+  <div class="shell">
+    <strong>Educational demonstration.</strong>
+    <span>This page shows how the V1.2 scoring framework reaches a conclusion. It is not investment advice and not a recommendation to buy or sell.</span>
+  </div>
+</div>
+
+<header class="masthead shell">
+  <span class="masthead__name">India Equity Research Terminal</span>
+  <span class="masthead__note">Analysis dated {{ generated | long_date }}</span>
+</header>
+
+<main class="shell">
+
+  <section>
+    <div class="identity">
+      <div>
+        <h1>{{ company.name or record.ticker }}</h1>
+        <div class="factline">
+          <span>NSE <b>{{ record.ticker }}</b></span>
+          {% if company.sector %}<span>Sector <b>{{ company.sector }}</b></span>{% endif %}
+          {% if analysis.profile %}<span>Framework <b>{{ analysis.profile.label }}</b></span>{% endif %}
+          {% if company.market_cap %}<span>Market value <b>₹{{ company.market_cap | crores }} cr</b></span>{% endif %}
+        </div>
+      </div>
+      <div class="identity__price">
+        <div class="value">{{ company.price | rupees }}</div>
+        <div class="small dim">Price used in this analysis</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="weightbar">
+      <div class="weightbar__top">
+        <div>
+          <div class="weightbar__score">{{ decision.total | number(1) }}<small> / 100</small></div>
+          <div class="weightbar__band small dim">{{ decision.band.value }}</div>
+        </div>
+        <div class="verdict tone-{{ tone }}">
+          <span class="verdict__word">{{ decision.action.value }}{% if decision.action.value == 'AVOID' %} <span class="small dim">(no position)</span>{% endif %}</span>
+        </div>
+      </div>
+
+      <div class="columns" role="img" aria-label="Seven categories. Column width is the category weight, fill height is the score, so filled area equals the total.">
+        {% for c in columns %}
+        <div class="column" style="flex: {{ c.weight }} 1 0; height: 100%;">
+          <div class="column__fill{% if c.tone == 'strong' %} column__fill--strong{% elif c.tone == 'weak' %} column__fill--weak{% endif %}" style="height: {{ c.fill }}%;"></div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="captions">
+        {% for c in columns %}
+        <div class="column__caption" style="flex: {{ c.weight }} 1 0;">
+          <b>{{ c.score | number(0) }}</b>{{ c.label }}
+        </div>
+        {% endfor %}
+      </div>
+      <p class="small dim" style="margin: 1rem 0 0; max-width: 62ch;">
+        Each column is as wide as the category's weight and as full as its score, so the shaded
+        area is the total out of a hundred. Valuation and quality each carry a fifth of the verdict.
+      </p>
+    </div>
+
+    {% if decision.labels %}
+    <div class="stack" style="margin-top: 1.5rem;">
+      {% for label in decision.labels %}
+      <div class="note note--negative">
+        <p>{{ label }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
+  {% if narrative.why %}
+  <section>
+    <div class="section-head"><h2>Why this conclusion</h2></div>
+    <ol class="list-clean">
+      {% for point in narrative.why %}<li>{{ point }}</li>{% endfor %}
+    </ol>
+    {% if narrative.market_missing %}
+    <div class="section-head" style="margin-top: 2rem;"><h2>What the market may be missing</h2></div>
+    <ol class="list-clean">
+      {% for point in narrative.market_missing %}<li>{{ point }}</li>{% endfor %}
+    </ol>
+    {% endif %}
+    {% if narrative.against %}
+    <div class="note" style="margin-top: 1.5rem;">
+      <h4>The strongest argument against this view</h4>
+      <p>{{ narrative.against }}</p>
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <section>
+    <div class="section-head">
+      <h2>Scorecard</h2>
+      <p>Raw scores are analyst judgement. Weighted contribution is raw divided by ten, times the weight.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Category</th><th>Raw</th><th>Weight</th><th>Contribution</th><th style="text-align:left">Basis</th></tr>
+        </thead>
+        <tbody>
+          {% for c in columns %}
+          <tr>
+            <td>{{ c.label }}</td>
+            <td>{{ c.score | number(0) }} / 10</td>
+            <td>{{ c.weight }}</td>
+            <td>{{ c.contribution | number(1) }}</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">{{ c.note or "—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr><td><b>Total</b></td><td></td><td>100</td><td><b>{{ decision.total | number(1) }}</b></td><td></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Valuation</h2>
+      <p>A range, not a point. Every assumption is stated and is a model input rather than a reported fact.</p>
+    </div>
+
+    {% if scenarios %}
+    <div class="table-scroll">
+      <table>
+        <caption>Scenario values per share</caption>
+        <thead>
+          <tr><th>Scenario</th><th>Value</th><th>Against price</th><th>Probability</th><th style="text-align:left">Assumption</th></tr>
+        </thead>
+        <tbody>
+          {% for s in scenarios %}
+          <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.value_per_share | rupees(0) }}</td>
+            <td class="{% if s.value_per_share and company.price and s.value_per_share > company.price %}pos{% elif s.value_per_share and company.price %}neg{% endif %}">
+              {% if s.value_per_share and company.price %}{{ (s.value_per_share / company.price - 1) | signed_percent }}{% else %}—{% endif %}
+            </td>
+            <td>{% if s.probability %}{{ s.probability | percent(0) }}{% else %}not assigned{% endif %}</td>
+            <td style="text-align:left; white-space:normal; font-family: var(--sans);">{{ s.description or "—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <div class="grid grid--2" style="margin-top: 1.75rem;">
+      <div>
+        <dl class="kv">
+          <dt>Margin of safety</dt><dd>{{ decision.margin_of_safety.value }}</dd>
+          {% if expected_value %}<dt>Expected value per share</dt><dd>{{ expected_value | rupees(0) }}</dd>{% endif %}
+          {% if analysis.relative %}
+          <dt>Price to earnings now</dt><dd>{{ analysis.relative.current_pe | number(1) }}</dd>
+          <dt>Its own five-year median</dt><dd>{{ analysis.relative.median_pe | number(1) }}</dd>
+          <dt>Premium to that median</dt><dd>{{ analysis.relative.pe_premium | signed_percent }}</dd>
+          {% endif %}
+          {% if company.fcf_yield %}<dt>Free cash flow yield</dt><dd>{{ company.fcf_yield | percent }}</dd>{% endif %}
+        </dl>
+      </div>
+      {% if analysis.wacc %}
+      <div>
+        <dl class="kv">
+          <dt>Cost of equity</dt><dd>{{ analysis.wacc.cost_of_equity | percent }}</dd>
+          <dt>Cost of capital used</dt><dd>{{ analysis.wacc.wacc | percent }}</dd>
+          <dt>Risk-free rate assumed</dt><dd>{{ analysis.wacc.risk_free | percent }}</dd>
+          <dt>Equity risk premium assumed</dt><dd>{{ analysis.wacc.equity_risk_premium | percent }}</dd>
+          <dt>Beta used</dt><dd>{{ analysis.wacc.beta | number(2) }}</dd>
+          {% if analysis.dcf %}
+          <dt>Terminal growth assumed</dt><dd>{{ analysis.dcf.terminal_growth | percent }}</dd>
+          <dt>Terminal share of value</dt><dd>{{ analysis.dcf.terminal_share | percent(0) }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if analysis.sensitivity %}
+    <div class="table-scroll" style="margin-top: 1.75rem;">
+      <table>
+        <caption>Value per share as the cost of capital and terminal growth each move by one point</caption>
+        <thead>
+          <tr>
+            <th>Cost of capital</th>
+            {% for g in analysis.sensitivity.terminal_growth_axis %}<th>g = {{ g | percent }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in analysis.sensitivity['values'] %}
+          <tr>
+            <td>{{ analysis.sensitivity.wacc_axis[loop.index0] | percent }}</td>
+            {% for cell in row %}<td>{{ cell | rupees(0) }}</td>{% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    {% if analysis.valuation_flags %}
+    <div class="stack" style="margin-top: 1.5rem;">
+      {% for flag in analysis.valuation_flags %}
+      <div class="note"><p>{{ flag }}</p></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </section>
+
+  {% if analysis.core_table and analysis.core_table.rows %}
+  <section>
+    <div class="section-head">
+      <h2>Financial record</h2>
+      <p>Reported figures in crore. Source: {{ company.source }}, retrieved {{ company.fetched_at | long_date }}.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Year to</th><th>Revenue</th><th>EBITDA</th><th>Margin</th><th>Profit</th>
+            <th>Earnings per share</th><th>Operating cash</th><th>Cash to profit</th>
+            <th>Return on capital</th><th>Net debt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in analysis.core_table.rows %}
+          <tr>
+            <td>{{ r.label }}</td>
+            <td>{{ r.revenue | crores }}</td>
+            <td>{{ r.ebitda | crores }}</td>
+            <td>{{ r.ebitda_margin | percent }}</td>
+            <td>{{ r.pat | crores }}</td>
+            <td>{{ r.eps | number(2) }}</td>
+            <td>{{ r.cfo | crores }}</td>
+            <td>{{ r.cfo_to_pat | times }}</td>
+            <td>{{ r.roce | percent }}</td>
+            <td>{{ r.net_debt | crores }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <dl class="kv" style="margin-top: 1.25rem; max-width: 34rem;">
+      <dt>Revenue compound growth</dt><dd>{{ analysis.core_table.cagr.revenue | percent }}</dd>
+      <dt>Profit compound growth</dt><dd>{{ analysis.core_table.cagr.pat | percent }}</dd>
+      <dt>Operating cash compound growth</dt><dd>{{ analysis.core_table.cagr.cfo | percent }}</dd>
+      <dt>Operating margin trend</dt><dd>{{ analysis.core_table.trend.ebitda_margin }}</dd>
+    </dl>
+  </section>
+  {% endif %}
+
+  {% if analysis.quarterly %}
+  <section>
+    <div class="section-head"><h2>Recent quarters</h2></div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Quarter to</th><th>Revenue</th><th>Year on year</th><th>Quarter on quarter</th><th>Margin</th><th>Profit</th><th>Profit year on year</th></tr>
+        </thead>
+        <tbody>
+          {% for q in analysis.quarterly %}
+          <tr>
+            <td>{{ q.label }}</td>
+            <td>{{ q.revenue | crores }}</td>
+            <td class="{% if q.revenue_yoy and q.revenue_yoy > 0 %}pos{% elif q.revenue_yoy %}neg{% endif %}">{{ q.revenue_yoy | signed_percent }}</td>
+            <td>{{ q.revenue_qoq | signed_percent }}</td>
+            <td>{{ q.ebitda_margin | percent }}</td>
+            <td>{{ q.pat | crores }}</td>
+            <td class="{% if q.pat_yoy and q.pat_yoy > 0 %}pos{% elif q.pat_yoy %}neg{% endif %}">{{ q.pat_yoy | signed_percent }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if analysis.forensics %}
+  <section>
+    <div class="section-head">
+      <h2>Financial quality</h2>
+      <p>Observations, not accusations. A ratio alone never establishes wrongdoing.</p>
+    </div>
+    <dl class="kv" style="max-width: 34rem;">
+      <dt>Red-flag score</dt><dd>{{ analysis.forensics.score }} — {{ analysis.forensics.concern }} concern</dd>
+      <dt>Cumulative cash conversion</dt><dd>{{ analysis.forensics.cash_conversion | times }}</dd>
+      <dt>Balance-sheet strength</dt><dd>{{ analysis.forensics.financial_strength | number(1) }} / 10</dd>
+    </dl>
+    {% if analysis.forensics.flags %}
+    <div class="stack" style="margin-top: 1.5rem;">
+      {% for f in analysis.forensics.flags %}
+      <div class="note{% if f.severity >= 2 %} note--negative{% endif %}">
+        <h4>{{ f.title }}</h4>
+        <p>{{ f.observation }} <span class="dim">{{ f.evidence }}</span></p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="small dim">No red flags were raised by the automatic checks.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if analysis.technical and analysis.technical.score %}
+  <section>
+    <div class="section-head">
+      <h2>Technical setup</h2>
+      <p>Kept outside the hundred-point score. It answers when the risk and reward might be better, not whether the asset is worth owning.</p>
+    </div>
+    <dl class="kv" style="max-width: 34rem;">
+      <dt>Technical score</dt><dd>{{ analysis.technical.score }} / 10</dd>
+      <dt>Trend</dt><dd>{{ analysis.technical.trend }}</dd>
+      <dt>Relative strength index</dt><dd>{{ analysis.technical.rsi14 | number(1) }}</dd>
+      <dt>200 day average</dt><dd>{{ analysis.technical.sma200 | rupees(0) }}</dd>
+      <dt>Support</dt><dd>{{ analysis.technical.support | map('rupees', 0) | join('  ') or '—' }}</dd>
+      <dt>Resistance</dt><dd>{{ analysis.technical.resistance | map('rupees', 0) | join('  ') or '—' }}</dd>
+    </dl>
+    <div class="rubric" style="margin-top: 1.5rem; max-width: 46rem;">
+      {% for line in analysis.technical.rubric %}
+      <div class="rubric__row">
+        <span>{{ line.condition }}</span>
+        <span class="rubric__track" style="width: 90px;"><span class="rubric__fill" style="width: {{ (line.earned / line.available * 100) if line.available else 0 }}%; display:block;"></span></span>
+        <span class="num">{{ line.earned }} / {{ line.available }}</span>
+        <span class="rubric__detail small">{{ line.detail }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if narrative.catalysts or narrative.risks or narrative.invalidation or narrative.monitor %}
+  <section>
+    <div class="grid grid--2">
+      {% if narrative.catalysts %}
+      <div>
+        <div class="section-head"><h2>Catalysts</h2></div>
+        <ol class="list-clean">{% for c in narrative.catalysts %}<li>{{ c }}</li>{% endfor %}</ol>
+      </div>
+      {% endif %}
+      {% if narrative.risks %}
+      <div>
+        <div class="section-head"><h2>Risks</h2></div>
+        <ol class="list-clean">{% for r in narrative.risks %}<li>{{ r }}</li>{% endfor %}</ol>
+      </div>
+      {% endif %}
+    </div>
+    {% if narrative.invalidation %}
+    <div class="section-head" style="margin-top: 2rem;">
+      <h2>What would break this thesis</h2>
+      <p>Measurable conditions, set before the fact.</p>
+    </div>
+    <ol class="list-clean">{% for i in narrative.invalidation %}<li>{{ i }}</li>{% endfor %}</ol>
+    {% endif %}
+    {% if narrative.monitor %}
+    <div class="section-head" style="margin-top: 2rem;"><h2>What to monitor</h2></div>
+    <ol class="list-clean">{% for m in narrative.monitor %}<li>{{ m }}</li>{% endfor %}</ol>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <section>
+    <div class="section-head">
+      <h2>Data notes and assumptions</h2>
+      <p>What the free data source could and could not supply, and which numbers are model inputs.</p>
+    </div>
+    {% if analysis.warnings %}
+    <ul class="list-clean small">
+      {% for w in analysis.warnings %}<li>{{ w }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% if analysis.assumptions %}
+    <dl class="kv" style="max-width: 34rem; margin-top: 1.25rem;">
+      <dt>Risk-free rate</dt><dd>{{ analysis.assumptions.risk_free | percent }}</dd>
+      <dt>Equity risk premium</dt><dd>{{ analysis.assumptions.equity_risk_premium | percent }}</dd>
+      <dt>Terminal growth</dt><dd>{{ analysis.assumptions.terminal_growth | percent }}</dd>
+      <dt>Margin of safety, high above</dt><dd>{{ analysis.assumptions.margin_of_safety_thresholds.high | percent(0) }} discount</dd>
+      <dt>Margin of safety, moderate above</dt><dd>{{ analysis.assumptions.margin_of_safety_thresholds.moderate | percent(0) }} discount</dd>
+    </dl>
+    <p class="small dim" style="max-width: 62ch;">{{ analysis.assumptions.note }}</p>
+    {% endif %}
+  </section>
+
+</main>
+
+<footer class="colophon shell">
+  <div class="colophon__credit">
+    <h3>Framework designed by {{ attribution.name }}</h3>
+    <p class="creds">
+      {% for line in attribution.credentials %}{{ line }}<br>{% endfor %}
+    </p>
+    <p>
+      Author of
+      {% for book in attribution.books %}{{ book }}{% if not loop.last %}; {% endif %}{% endfor %}.
+    </p>
+  </div>
+  <div class="colophon__disclaimer">
+    {% for line in disclaimer %}
+    <p>{% if loop.first %}<strong>{{ line }}</strong>{% else %}{{ line }}{% endif %}</p>
+    {% endfor %}
+  </div>
+</footer>
+
+<script>
+  // One orchestrated moment: the columns rise once, on load.
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.column__fill').forEach(function (el) {
+      var target = el.style.height;
+      el.style.height = '0%';
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { el.style.height = target; });
+      });
+    });
+  }
+</script>
+</body>
+</html>

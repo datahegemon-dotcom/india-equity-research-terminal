@@ -40,9 +40,15 @@ the affected score until supplied or explicitly waived.
 ### 3.1 Private terminal
 
 Runs on the analyst's machine, bound to `127.0.0.1`. Python with FastAPI, SQLite for
-storage, a React interface. Fetches free data, computes tables, proposes scores, runs
-the engine, renders reports. No authentication, because it is not reachable off the
-machine.
+storage, and a hand-written interface in plain HTML, CSS and JavaScript.
+
+*Changed during the build.* The plan called for React with Vite and Tailwind. The actual
+interaction surface turned out small: seven sliders, some text fields, ten checkboxes and a
+publish button. A build step and a dependency tree were not worth it for a local, zero-cost
+tool, and removing them means the project runs with Python alone.
+
+It fetches free data, computes the tables, proposes scores, runs the engine and renders
+reports. No authentication, because it is not reachable off the machine.
 
 ### 3.2 Public site
 
@@ -97,7 +103,7 @@ app/
     sectors.py    sector adapters
   report/         render.py, publish.py
   api/            routes.py
-web/              React + Vite + Tailwind
+web/              workbench interface, no build step
 site/             generated public output
 tests/            pytest
 ```

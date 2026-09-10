@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>India Equity Research Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/terminal.css">
+<link rel="stylesheet" href="/web/workbench.css">
+</head>
+<body class="ink">
+
+<div class="app">
+
+  <aside class="rail">
+    <div class="rail__brand">
+      <span class="rail__mark">IERT</span>
+      <span class="rail__name">India Equity<br>Research Terminal</span>
+    </div>
+
+    <form class="newform" id="new-form">
+      <label for="ticker">Analyse a company</label>
+      <div class="newform__row">
+        <input id="ticker" name="ticker" placeholder="RELIANCE" autocomplete="off" spellcheck="false">
+        <button type="submit" id="analyse-btn">Analyse</button>
+      </div>
+      <p class="small dim" id="new-status">Enter an NSE symbol. Data is fetched from free sources.</p>
+    </form>
+
+    <nav class="reportlist" id="report-list" aria-label="Saved reports"></nav>
+
+    <div class="rail__foot small dim">
+      <p>Private to this machine. Nothing reaches the public site until you publish.</p>
+      <p id="site-status"></p>
+    </div>
+  </aside>
+
+  <main class="work" id="work">
+    <div class="empty" id="empty">
+      <h1>No report open</h1>
+      <p>Enter an NSE symbol on the left to pull five years of financials, price history and a first
+         set of proposed scores. Every proposed score is a suggestion you can overrule.</p>
+    </div>
+
+    <div class="report" id="report" hidden>
+
+      <header class="workhead" id="workhead"></header>
+
+      <nav class="subnav" id="subnav">
+        <a href="#sec-scoring">Scoring</a>
+        <a href="#sec-rules">Decision rules</a>
+        <a href="#sec-valuation">Valuation</a>
+        <a href="#sec-narrative">Thesis</a>
+        <a href="#sec-audit">Audit</a>
+        <a href="#sec-data">Data</a>
+      </nav>
+
+      <section id="sec-scoring">
+        <div class="section-head">
+          <h2>Scoring</h2>
+          <p>Seven categories, each one to ten. The proposal beside each slider is derived from the
+             figures shown. Move the slider when you disagree.</p>
+        </div>
+        <div id="scoring"></div>
+      </section>
+
+      <section id="sec-rules">
+        <div class="section-head">
+          <h2>Decision rules</h2>
+          <p>These inputs drive the override rules. They can block a verdict the total alone would allow.</p>
+        </div>
+        <div id="rules"></div>
+      </section>
+
+      <section id="sec-valuation">
+        <div class="section-head">
+          <h2>Valuation</h2>
+          <p>Scenario values are editable. Leave probabilities empty unless you can defend them; the
+             report then omits expected value rather than inventing it.</p>
+        </div>
+        <div id="valuation"></div>
+      </section>
+
+      <section id="sec-narrative">
+        <div class="section-head">
+          <h2>Thesis</h2>
+          <p>One point per line. These become the published argument.</p>
+        </div>
+        <div id="narrative"></div>
+      </section>
+
+      <section id="sec-audit">
+        <div class="section-head">
+          <h2>Score audit</h2>
+          <p>All ten questions must be answered yes before the report can be published.</p>
+        </div>
+        <div id="audit"></div>
+      </section>
+
+      <section id="sec-data">
+        <div class="section-head">
+          <h2>Data</h2>
+          <p>What the free source supplied, and what it could not.</p>
+        </div>
+        <div id="data"></div>
+      </section>
+
+    </div>
+  </main>
+
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="/web/workbench.js"></script>
+</body>
+</html>

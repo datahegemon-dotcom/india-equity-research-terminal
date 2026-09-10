@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>India Equity Research Terminal</title>
+<meta name="description" content="Framework-driven equity analysis of NSE listed companies, published as an educational demonstration of a disciplined scoring and decision process.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<style>{{ inline_css }}</style>
+</head>
+<body class="paper">
+
+<div class="banner">
+  <div class="shell">
+    <strong>Educational demonstration.</strong>
+    <span>These pages show how a scoring framework reaches a conclusion. Nothing here is investment advice.</span>
+  </div>
+</div>
+
+<header class="masthead shell">
+  <span class="masthead__name">India Equity Research Terminal</span>
+  <span class="masthead__note">{{ reports | length }} {% if reports | length == 1 %}report{% else %}reports{% endif %}</span>
+</header>
+
+<main class="shell">
+
+  <section>
+    <div class="prose">
+      <h1 style="font-family: var(--serif); font-size: var(--step-3); letter-spacing: -0.02em; margin-bottom: 0.75rem;">
+        A hundred points, seven categories, and rules that can overrule the total.
+      </h1>
+      <p>
+        Every company here is put through the same process. Business quality, growth, earnings,
+        valuation, competitive position, catalysts and risk each receive a score out of ten, and
+        each carries a fixed weight. Valuation carries as much weight as quality, because an
+        excellent business bought at the wrong price is still a poor investment.
+      </p>
+      <p>
+        The total does not decide on its own. A high-quality business trading with no margin of
+        safety cannot be labelled a buy. A cheap business with weak economics cannot be called
+        attractive. A broken thesis overrules the score entirely. Those rules are applied by the
+        software, not by mood.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Published analysis</h2>
+      <p>Newest first. Each page shows the full working, including what the data could not support.</p>
+    </div>
+
+    {% if reports %}
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Company</th><th>Ticker</th><th>Score</th><th>Verdict</th><th>Published</th></tr>
+        </thead>
+        <tbody>
+          {% for r in reports %}
+          <tr>
+            <td><a href="{{ r.slug }}/">{{ r.company_name or r.ticker }}</a></td>
+            <td>{{ r.ticker }}</td>
+            <td>{{ r.total | number(1) }}</td>
+            <td class="tone-{{ r.tone }}">{{ r.action }}</td>
+            <td>{{ r.published_at | long_date }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="dim">No reports published yet.</p>
+    {% endif %}
+  </section>
+
+</main>
+
+<footer class="colophon shell">
+  <div class="colophon__credit">
+    <h3>Framework designed by {{ attribution.name }}</h3>
+    <p class="creds">{% for line in attribution.credentials %}{{ line }}<br>{% endfor %}</p>
+    <p>Author of {% for book in attribution.books %}{{ book }}{% if not loop.last %}; {% endif %}{% endfor %}.</p>
+  </div>
+  <div class="colophon__disclaimer">
+    {% for line in disclaimer %}
+    <p>{% if loop.first %}<strong>{{ line }}</strong>{% else %}{{ line }}{% endif %}</p>
+    {% endfor %}
+  </div>
+</footer>
+
+</body>
+</html>
