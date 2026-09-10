@@ -1,0 +1,26 @@
+# --- PRIVACY CONTROL: this repository is public. Nothing below may ever be pushed. ---
+# Local analyst database, drafts and unpublished work
+terminal.db
+terminal.db-journal
+*.sqlite
+*.sqlite3
+data/
+drafts/
+.cache/
+
+# Source methodology documents remain private intellectual property
+frameworks/
+
+# --- Standard ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+web/dist/
+.env
+.env.*
+.DS_Store
+Thumbs.db
