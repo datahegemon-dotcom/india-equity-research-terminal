@@ -1,0 +1,16 @@
+# One-click deploy on Render's free tier.
+#
+# Render's free plan has no persistent disk and sleeps the instance after about
+# fifteen minutes of no traffic, waking again in roughly a minute on the next
+# request. Reports are therefore lost whenever the instance restarts. Upgrading
+# to a paid instance with a disk mounted at /data is what makes them stick.
+services:
+  - type: web
+    name: india-equity-research-terminal
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/runtime
+    envVars:
+      - key: IERT_DB
+        value: /data/terminal.db

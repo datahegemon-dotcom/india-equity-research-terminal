@@ -12,13 +12,17 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import re
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterator
 
-DB_PATH = Path(__file__).resolve().parent.parent / "terminal.db"
+# A host with a mounted disk points IERT_DB at it so reports survive restarts.
+# Without that, the database lives beside the project and a hosted container
+# loses it whenever the platform recycles the instance.
+DB_PATH = Path(os.environ.get("IERT_DB") or (Path(__file__).resolve().parent.parent / "terminal.db"))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS reports (
@@ -59,6 +63,7 @@ def connect() -> Iterator[sqlite3.Connection]:
 
 
 def init() -> None:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with connect() as connection:
         connection.executescript(SCHEMA)
 

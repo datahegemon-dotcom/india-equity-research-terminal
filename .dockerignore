@@ -1,0 +1,9 @@
+.venv/
+.git/
+.cache/
+terminal.db
+frameworks/
+docs/
+tests/
+__pycache__/
+*.pyc

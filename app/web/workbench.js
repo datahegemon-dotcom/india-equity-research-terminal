@@ -694,8 +694,22 @@ $('new-form').addEventListener('submit', async (event) => {
   }
 });
 
+async function loadRuntime() {
+  try {
+    const runtime = await api('/runtime');
+    if (!runtime.hosted) return;
+    const note = $('hostnote');
+    note.innerHTML = '<strong>Public address, no login.</strong> ' + escapeHtml(runtime.note);
+    note.hidden = false;
+    $('privacy-note').textContent = 'Running on a public host. Anyone with this address can read and change these reports.';
+  } catch {
+    /* the banner is informational; never block the workbench on it */
+  }
+}
+
 (async function boot() {
   state.meta = await api('/meta');
+  await loadRuntime();
   await loadReports();
   await loadSiteStatus();
   if (state.reports.length) openReport(state.reports[0].id);

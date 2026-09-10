@@ -165,6 +165,9 @@ def to_yahoo_symbol(ticker: str) -> str:
 
 SEARCH_URL = "https://query2.finance.yahoo.com/v1/finance/search"
 
+# Set when a search fails, so the interface can explain itself.
+LAST_SEARCH_ERROR: str | None = None
+
 # Yahoo's exchange codes for the two Indian exchanges, best listing first.
 _EXCHANGE_RANK = {"NSI": 0, "BSE": 1}
 _EXCHANGE_NAME = {"NSI": "NSE", "BSE": "BSE"}
@@ -177,6 +180,8 @@ def search(query: str, limit: int = 8) -> list[dict[str, str]]:
     Indian equities does not want the Frankfurt or New York line, and showing
     them would invite picking the wrong one.
     """
+    global LAST_SEARCH_ERROR
+    LAST_SEARCH_ERROR = None
     term = query.strip()
     if len(term) < 2:
         return []
@@ -190,7 +195,11 @@ def search(query: str, limit: int = 8) -> list[dict[str, str]]:
         )
         response.raise_for_status()
         quotes = response.json().get("quotes", [])
-    except Exception:  # noqa: BLE001 - search is a convenience, never fatal
+    except Exception as exc:  # noqa: BLE001 - search must never crash the workbench
+        # Recorded rather than swallowed. An empty result and a broken connection
+        # look identical to the user otherwise, which makes a hosting problem
+        # very hard to diagnose.
+        LAST_SEARCH_ERROR = f"{type(exc).__name__}: {exc}"
         return []
 
     matches: list[dict[str, str]] = []

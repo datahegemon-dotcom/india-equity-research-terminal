@@ -73,6 +73,34 @@ reports every gap rather than filling it with a guess.
 If your machine runs antivirus software that intercepts HTTPS, `app/net.py` finds its
 certificate and trusts it. It never disables verification.
 
+## Hosting the workbench
+
+The workbench can run on a public URL as well as on your machine. A `Dockerfile` is
+included and works on any platform that builds one.
+
+**There is no login.** Anyone who finds the address can read the reports, change the
+scores and create new ones. That is a deliberate choice, not an oversight. Do not put
+anything on it you would mind a stranger reading or editing.
+
+The quickest route is Render's free tier, which needs no card:
+
+1. Sign in at render.com with GitHub.
+2. New, then Blueprint, and pick this repository. `render.yaml` configures the rest.
+3. Deploy. The first build takes a few minutes.
+
+Two things about free hosting are worth knowing before you rely on it. The instance
+sleeps after about fifteen minutes without traffic and takes roughly a minute to wake on
+the next request. And there is no persistent disk on the free plan, so reports are lost
+whenever the instance restarts. Mounting a disk at `/data` on a paid instance fixes the
+second one; `IERT_DB` already points there.
+
+Publishing from a hosted instance writes the page inside the container, where GitHub
+Pages cannot see it. Publishing to the live site still happens from a machine with git
+access.
+
+If the hosted instance cannot reach the data source, `/api/health/data` says so and
+reports the actual error rather than pretending no company matched.
+
 ## What stays private
 
 The repository is public because free GitHub Pages requires it. These never enter version

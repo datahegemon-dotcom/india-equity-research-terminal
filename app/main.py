@@ -3,12 +3,18 @@
 Run with:  python -m app.main
 Then open: http://127.0.0.1:8848
 
-The server binds to the loopback address only. It is not reachable from your
-network, which is why there is no login.
+By default the server binds to the loopback address and is reachable only from
+this machine. When a hosting platform sets PORT, it binds to every interface
+instead and the workbench becomes publicly reachable.
+
+There is no authentication. On a public host that means anyone with the address
+can read the database, change scores and create reports. That is a deliberate
+choice by the operator, not an oversight.
 """
 
 from __future__ import annotations
 
+import os
 import webbrowser
 from pathlib import Path
 
@@ -20,8 +26,13 @@ from app import db
 from app.api.routes import router
 from app.net import configure_trust
 
-HOST = "127.0.0.1"
-PORT = 8848
+# A platform that hosts the app sets PORT. When it does, listen on every
+# interface, because the platform's router reaches the container from outside.
+# Without it, stay on the loopback address so the workbench is reachable only
+# from this machine.
+PORT = int(os.environ.get("PORT", "8848"))
+HOSTED = "PORT" in os.environ
+HOST = os.environ.get("HOST", "0.0.0.0" if HOSTED else "127.0.0.1")
 
 WEB = Path(__file__).resolve().parent / "web"
 STATIC = Path(__file__).resolve().parent / "report" / "static"
@@ -59,16 +70,35 @@ app.mount("/assets", StaticFiles(directory=str(STATIC)), name="assets")
 app.mount("/web", StaticFiles(directory=str(WEB)), name="web")
 
 
+@app.get("/api/runtime")
+def runtime() -> dict:
+    """What the interface needs to know about where it is running."""
+    return {
+        "hosted": HOSTED,
+        "note": (
+            "Running on a public host with no login. Anyone with this address can read and "
+            "change these reports, and published pages stay inside this container until the "
+            "project is pushed from a machine that has git access."
+            if HOSTED
+            else "Private to this machine."
+        ),
+    }
+
+
 def main() -> None:
     import uvicorn
 
-    url = f"http://{HOST}:{PORT}"
-    print(f"India Equity Research Terminal running at {url}")
-    print("Private to this machine. Nothing is published until you press Publish.")
-    try:
-        webbrowser.open(url)
-    except Exception:  # noqa: BLE001 - opening a browser is a convenience, not a requirement
-        pass
+    if HOSTED:
+        print(f"India Equity Research Terminal listening on {HOST}:{PORT}")
+        print("Public host, no authentication. Anyone with the address has full access.")
+    else:
+        url = f"http://127.0.0.1:{PORT}"
+        print(f"India Equity Research Terminal running at {url}")
+        print("Private to this machine. Nothing is published until you press Publish.")
+        try:
+            webbrowser.open(url)
+        except Exception:  # noqa: BLE001 - opening a browser is a convenience
+            pass
     uvicorn.run(app, host=HOST, port=PORT, log_level="warning")
 
 

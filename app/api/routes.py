@@ -68,6 +68,28 @@ def search_companies(q: str = "") -> list[dict[str, str]]:
     return yahoo.search(q)
 
 
+@router.get("/health/data")
+def data_health() -> dict[str, Any]:
+    """Can this machine actually reach the data source?
+
+    Worth having, because a blocked or intercepted connection otherwise looks
+    exactly like a company that does not exist.
+    """
+    matches = yahoo.search("reliance")
+    return {
+        "reachable": bool(matches),
+        "matches": len(matches),
+        "error": yahoo.LAST_SEARCH_ERROR,
+        "hint": (
+            None
+            if matches
+            else "The data source could not be reached. On a host, check outbound HTTPS. "
+            "On a machine whose antivirus intercepts TLS, point SSL_CERT_FILE at a bundle "
+            "that includes its certificate."
+        ),
+    }
+
+
 @router.get("/reports")
 def list_reports() -> list[dict[str, Any]]:
     return db.list_reports()

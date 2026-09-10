@@ -228,3 +228,16 @@ button.quiet { background: transparent; }
   .scorerow { grid-template-columns: 1fr; }
   .scorerow__contribution { text-align: left; }
 }
+
+/* Shown only when the workbench is running on a public host. */
+.hostnote {
+  margin-top: 1.25rem;
+  border: 1px solid var(--brick);
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--brick) 12%, transparent);
+  padding: 0.75rem 1rem;
+  border-radius: 2px;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+.hostnote strong { color: var(--on-ink-hi); }
