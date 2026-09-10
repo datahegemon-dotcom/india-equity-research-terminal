@@ -653,7 +653,7 @@ async function analyse(ticker, label) {
   button.innerHTML = '<span class="spinner"></span>';
   $('new-status').textContent = `Fetching ${label || ticker}. This takes a few seconds.`;
   try {
-    const result = await api('/reports', { method: 'POST', body: JSON.stringify({ ticker }) });
+    const result = await api('/reports', { method: 'POST', body: JSON.stringify({ ticker, name: label || '' }) });
     $('ticker').value = '';
     $('new-status').textContent = HINT;
     await loadReports();

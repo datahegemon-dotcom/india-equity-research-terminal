@@ -98,22 +98,19 @@ def list_reports() -> list[dict[str, Any]]:
 @router.post("/reports")
 def create_report(body: dict[str, Any] = Body(...)) -> dict[str, Any]:
     ticker = (body.get("ticker") or "").strip().upper()
+    name_hint = (body.get("name") or "").strip() or None
     if not ticker:
         raise HTTPException(status_code=400, detail="A ticker is required.")
 
     try:
-        analysis = pipeline.analyse(ticker)
+        analysis = pipeline.analyse(ticker, name_hint=name_hint)
+    except yahoo.NoDataAvailable as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:  # noqa: BLE001 - surface the real reason to the analyst
         raise HTTPException(status_code=502, detail=f"Could not fetch data for {ticker}: {exc}") from exc
 
-    if not analysis.company.get("name"):
-        raise HTTPException(
-            status_code=404,
-            detail=f"No company found for {ticker}. Check the symbol as listed on the NSE.",
-        )
-
     payload = _initial_payload(analysis)
-    record = db.create_report(ticker, analysis.company.get("name"), payload)
+    record = db.create_report(ticker, analysis.company.get("name") or name_hint or ticker, payload)
     return _full(record)
 
 
@@ -195,7 +192,7 @@ def refresh_report(report_id: int) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     try:
-        analysis = pipeline.analyse(record["ticker"])
+        analysis = pipeline.analyse(record["ticker"], name_hint=record.get("company_name"))
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"Refresh failed: {exc}") from exc
 

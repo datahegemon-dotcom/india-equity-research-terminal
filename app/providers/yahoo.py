@@ -29,6 +29,15 @@ configure_trust()
 
 SOURCE = "Yahoo Finance"
 
+
+class NoDataAvailable(Exception):
+    """Raised when the source returns nothing usable for a ticker.
+
+    Distinct from a partial answer. Yahoo often refuses the company-profile
+    endpoint from cloud addresses while still serving statements and prices, and
+    a partial answer is worth analysing.
+    """
+
 # Yahoo's row labels drift, so each canonical field lists the spellings seen.
 INCOME_FIELDS: dict[str, tuple[str, ...]] = {
     "revenue": ("Total Revenue", "Operating Revenue"),
@@ -267,7 +276,7 @@ def _merge(primary: list[Period], *others: list[Period]) -> list[Period]:
     return [by_label[label] for label in order]
 
 
-def fetch(ticker: str, years: int = 5, quarters: int = 8) -> CompanyData:
+def fetch(ticker: str, years: int = 5, quarters: int = 8, name_hint: str | None = None) -> CompanyData:
     """Fetch everything free that Yahoo will give us for one ticker."""
     symbol = to_yahoo_symbol(ticker)
     t = yf.Ticker(symbol)
@@ -277,10 +286,17 @@ def fetch(ticker: str, years: int = 5, quarters: int = 8) -> CompanyData:
         info: dict[str, Any] = t.info or {}
     except Exception as exc:  # noqa: BLE001 - Yahoo is scraped, any failure is possible
         info = {}
-        warnings.append(f"Company profile unavailable: {exc}")
+        warnings.append(
+            f"Company profile unavailable ({type(exc).__name__}). Sector, market value and "
+            "reported ratios are missing from this report. The statements and prices below "
+            "are unaffected."
+        )
 
-    if not info.get("longName") and not info.get("shortName"):
-        warnings.append("Yahoo returned no company profile; check the ticker symbol.")
+    if not info.get("longName") and not info.get("shortName") and not warnings:
+        warnings.append(
+            "The company profile came back empty. Sector and market value are missing; "
+            "the statements and prices below are unaffected."
+        )
 
     def frame(getter: str) -> pd.DataFrame | None:
         try:
@@ -324,17 +340,42 @@ def fetch(ticker: str, years: int = 5, quarters: int = 8) -> CompanyData:
     if price is None and not history.empty:
         price = float(history["Close"].iloc[-1])
 
+    # A report needs something to analyse. Statements or prices will do; the
+    # profile is a convenience. Only when all of it is missing is there no company.
+    if not annual and history.empty:
+        raise NoDataAvailable(
+            f"No financial statements and no price history came back for {symbol}. "
+            "Either the symbol is wrong, or the data source is refusing requests from "
+            "this machine."
+        )
+
+    name = info.get("longName") or info.get("shortName") or name_hint
+
+    # When the profile is refused, rebuild what the valuation actually needs from
+    # the statements. The share count is reported on the balance sheet, and a
+    # market value is just that count times the price.
+    shares = info.get("sharesOutstanding")
+    if not shares and annual:
+        shares = next((p.get("shares_outstanding") for p in annual if p.get("shares_outstanding")), None)
+        if shares:
+            warnings.append("Share count taken from the balance sheet because the profile was unavailable.")
+
+    market_cap = info.get("marketCap")
+    if not market_cap and shares and price:
+        market_cap = shares * price
+        warnings.append("Market value derived from the share count and the current price.")
+
     return CompanyData(
         ticker=ticker.strip().upper().removesuffix(".NS").removesuffix(".BO"),
         yahoo_symbol=symbol,
-        name=info.get("longName") or info.get("shortName"),
+        name=name,
         sector=info.get("sector"),
         industry=info.get("industry"),
         currency=info.get("currency"),
         exchange=info.get("exchange"),
         price=price,
-        market_cap=info.get("marketCap"),
-        shares_outstanding=info.get("sharesOutstanding"),
+        market_cap=market_cap,
+        shares_outstanding=shares,
         enterprise_value=info.get("enterpriseValue"),
         trailing_pe=info.get("trailingPE"),
         forward_pe=info.get("forwardPE"),

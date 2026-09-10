@@ -117,8 +117,8 @@ def _price_series(history: pd.DataFrame) -> list[dict[str, Any]]:
     return out
 
 
-def analyse(ticker: str, growth_rates: list[float] | None = None) -> Analysis:
-    data = yahoo.fetch(ticker)
+def analyse(ticker: str, growth_rates: list[float] | None = None, name_hint: str | None = None) -> Analysis:
+    data = yahoo.fetch(ticker, name_hint=name_hint)
     warnings = list(data.warnings)
 
     core = metrics.build_core_table(data.annual)
